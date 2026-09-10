@@ -1,5 +1,43 @@
 import streamlit as st
 import pandas as pd
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+def enviar_correo_pin(destinatario, pin, nombre):
+    remitente = st.secrets["EMAIL_USER"]
+    password = st.secrets["EMAIL_PASSWORD"]
+    
+    asunto = "Portal de Control Operativo | Código de Verificación de Acceso"
+    
+    cuerpo = f"""
+    Estimado(a) {nombre},
+    
+    Se ha recibido una solicitud de creación de cuenta para el Portal de Control Operativo (Unidad de Resguardo Ejecutivo).
+    
+    Su código PIN temporal de acceso de 6 dígitos es: {pin}
+    
+    Este código es estrictamente confidencial y tiene vigencia única para completar su registro. Si usted no solicitó este acceso, ignore este mensaje.
+    
+    Atentamente,
+    J&V Resguardo S.A.C.
+    """
+    
+    msg = MIMEMultipart()
+    msg['From'] = remitente
+    msg['To'] = destinatario
+    msg['Subject'] = asunto
+    msg.attach(MIMEText(cuerpo, 'plain'))
+    
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(remitente, password)
+        server.sendmail(remitente, destinatario, msg.as_string())
+        server.quit()
+        return True
+    except Exception as e:
+        return False
 
 st.set_page_config(page_title="Control Operativo | J&V Resguardo", layout="wide", initial_sidebar_state="collapsed")
 
@@ -138,20 +176,27 @@ if not st.session_state.logged_in:
                             if autorizado:
                                 st.session_state.temp_pin = pin_generado
                                 st.session_state.temp_correo = correo_limpio
-                                st.session_state.reg_step = 2
-                                st.success("¡Correo verificado! Código PIN generado.")
-                                st.rerun()
+                                st.session_state.temp_nombre = nombre
+                                
+                                # Disparar el correo real
+                                exito_envio = enviar_correo_pin(correo_limpio, pin_generado, nombre)
+                                
+                                if exito_envio:
+                                    st.session_state.reg_step = 2
+                                    st.success("¡Código PIN enviado exitosamente a su bandeja corporativa!")
+                                    st.rerun()
+                                else:
+                                    st.error("Error.")
                             else:
-                                st.error("Acceso denegado: Dominio no autorizado o correo sin excepción.")
+                                st.error("Acceso denegado: Dominio no autorizado.")
 
             # PASO 2: Ingreso del PIN recibido y creación de contraseña
             elif st.session_state.reg_step == 2:
-                st.info(f"Se ha enviado un mensaje ejecutivo al correo: **{st.session_state.temp_correo}**")
-                st.warning(f"[SIMULACIÓN MENSAJE CORPORATIVO] Su código PIN de acceso es: **{st.session_state.temp_pin}**")
+                st.info(f"Se ha enviado su PIN al siguiente correo: **{st.session_state.temp_correo}**")
                 
                 with st.form("registro_form_2"):
                     pin_ingresado = st.text_input("Ingrese el PIN de 6 dígitos")
-                    nuevo_password = st.text_input("Defina su Contraseña Definitiva", type="password")
+                    nuevo_password = st.text_input("Defina su Contraseña", type="password")
                     
                     st.write("")
                     espacio_izq, col_btn1, col_btn2, espacio_der = st.columns([0.5, 1.2, 1.2, 0.5])
