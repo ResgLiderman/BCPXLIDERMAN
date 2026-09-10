@@ -126,8 +126,7 @@ if not st.session_state.logged_in:
                         # 2. SI ES CORREO EXTERNO (Validación en Google Sheets)
                         else:
                             try:
-                                # URL de exportación CSV de tu Google Sheet (Asegúrate de que la hoja sea pública para lectura)
-                                sheet_url = "https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/export?format=csv&gid=0"
+                                sheet_url = "https://docs.google.com/spreadsheets/d/1zs4kNTGuEDk6jQ5GWtiHvCZb1VSqrxovfRxqXv3M4MQ/export?format=csv&gid=0"
                                 df_sheets = pd.read_csv(sheet_url)
                                 
                                 # Buscar si el correo existe en la columna 'Correo'
