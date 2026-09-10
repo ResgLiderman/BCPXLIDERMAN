@@ -288,24 +288,33 @@ else:
         st.markdown("<div class='top-label'>DASHBOARD EJECUTIVO - EQUIPAMIENTO TÁCTICO BCP</div>", unsafe_allow_html=True)
         
         try:
-            # Enlace de exportación CSV de la pestaña EQUIPAMIENTO de tu nuevo sheet
+            # Enlace de exportación CSV de la pestaña EQUIPAMIENTO
             sheet_url_eq = "https://docs.google.com/spreadsheets/d/1Cs3cV-NdVC6u1sDVhWEKpoP2OvDldzpWVIvx8bf-OSc/export?format=csv&gid=0"
             df_eq = pd.read_csv(sheet_url_eq, header=1)
             
-            # Limpieza básica de filas vacías
+            # Limpieza quirúrgica: eliminar columnas "Unnamed" o vacías y filas sin equipo
+            df_eq = df_eq.loc[:, ~df_eq.columns.str.contains('^Unnamed')]
             df_eq = df_eq.dropna(subset=['EQUIPO'])
             
             # Tarjetas de Métricas Ejecutivas estilo Power BI
             col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-            col_m1.metric("Ítems Dotación", len(df_eq), "100% Homologado")
-            col_m2.metric("Personal Evaluado", "10 Oficiales", "Activos G2-G7")
-            col_m3.metric("Control Logístico", "Operativo", "Sin Incidencias", delta_color="normal")
-            col_m4.metric("Auditoría BCP", "Aprobada", "Certificado", delta_color="normal")
+            col_m1.metric("Tipos de Ítems", len(df_eq), "100% Homologado")
+            col_m2.metric("Personal Asignado", "10 Oficiales", "Activos G2-G7")
+            col_m3.metric("Control Logístico", "Óptimo", "Sin Mermas", delta_color="normal")
+            col_m4.metric("Auditoría BCP", "Aprobada", "Certificado BCP", delta_color="normal")
             
             st.write("")
-            st.markdown("##### 🛡️ Matriz de Dotación y Asignación por Oficial")
+            st.markdown("##### 📊 Gráfico de Distribución de Cantidades por Componente")
             
-            # Filtro interactivo por tipo de equipo
+            # Gráfico de barras interactivo nativo estilo BI
+            if 'CANTIDAD' in df_eq.columns and 'EQUIPO' in df_eq.columns:
+                df_chart = df_eq.set_index('EQUIPO')['CANTIDAD']
+                st.bar_chart(df_chart, color="#002A8D")
+            
+            st.write("")
+            st.markdown("##### 🛡️ Matriz Detallada de Asignación por Oficial")
+            
+            # Filtro interactivo limpio
             equipos_disponibles = ["Todos"] + df_eq['EQUIPO'].tolist()
             filtro_eq = st.selectbox("Filtrar componente táctico:", equipos_disponibles)
             
@@ -313,8 +322,8 @@ else:
             if filtro_eq != "Todos":
                 df_mostrar = df_mostrar[df_mostrar['EQUIPO'] == filtro_eq]
                 
-            # Mostrar tabla interactiva con diseño limpio
+            # Mostrar tabla interactiva sin rastro de columnas basura
             st.dataframe(df_mostrar.set_index('EQUIPO'), use_container_width=True)
             
         except Exception as e:
-            st.error("Error al sincronizar con la base de datos de equipamiento. Verifique que la hoja esté compartida como 'Cualquier persona con el vínculo'.")
+            st.error("Error al sincronizar con el Google Sheet. Verifica que la fila 2 tenga las cabeceras limpias.")
