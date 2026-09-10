@@ -79,39 +79,75 @@ st.markdown("""
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+if "vista" not in st.session_state:
+    st.session_state.vista = "login"
 
 if not st.session_state.logged_in:
-    col1, col2, col3 = st.columns([2.5, 1.4, 2.5]) 
     
-    with col2:
-        st.write("<br><br>", unsafe_allow_html=True) 
-        st.markdown("<div class='top-label'>UNIDAD DE RESGUARDO EJECUTIVO</div>", unsafe_allow_html=True)
-        st.markdown("<div class='main-title'>PORTAL DE CONTROL OPERATIVO</div>", unsafe_allow_html=True)
-        st.markdown("<div class='sub-title'>Sistema Integrado de Gestión y Seguimiento</div>", unsafe_allow_html=True)
-        
-        with st.form("login_form"):
-            st.markdown("<h5 style='text-align: center; margin-bottom: 25px; color: #002A8D;'>Credenciales de Acceso</h5>", unsafe_allow_html=True)
+    # --- PANTALLA DE SOLICITUD (REGISTRO) ---
+    if st.session_state.vista == "registro":
+        col1, col2, col3 = st.columns([2.5, 1.4, 2.5]) 
+        with col2:
+            st.write("<br><br>", unsafe_allow_html=True)
+            st.markdown("<div class='main-title'>SOLICITUD DE ACCESO</div>", unsafe_allow_html=True)
+            st.markdown("<div class='sub-title'>Registro de personal autorizado</div>", unsafe_allow_html=True)
             
-            usuario = st.text_input("Usuario Corporativo")
-            password = st.text_input("Contraseña", type="password")
-            
-            st.write("") 
-            
-            espacio_izq, col_btn1, col_btn2, espacio_der = st.columns([0.5, 1.2, 1.2, 0.5])
-            
-            with col_btn1:
-                submit = st.form_submit_button("Ingresar")
-            with col_btn2:
-                register = st.form_submit_button("Solicitar")
-            
-            if submit:
-                if usuario == "admin" and password == "123":
-                    st.session_state.logged_in = True
+            with st.form("registro_form"):
+                nombre = st.text_input("Nombres y Apellidos")
+                cargo = st.text_input("Cargo / Jefatura (Ej. Seguridad Ejecutiva BCP)")
+                correo = st.text_input("Correo Corporativo")
+                
+                st.write("")
+                espacio_izq, col_btn1, col_btn2, espacio_der = st.columns([0.5, 1.2, 1.2, 0.5])
+                with col_btn1:
+                    enviar = st.form_submit_button("Enviar PIN")
+                with col_btn2:
+                    volver = st.form_submit_button("Volver")
+                
+                if volver:
+                    st.session_state.vista = "login"
                     st.rerun()
-                else:
-                    st.error("Acceso denegado. Contacte al administrador.")
+                if enviar:
+                    st.info("Aquí conectaremos el envío del correo con código.")
                     
-        st.markdown("<div class='footer-text'>© 2026 J&V RESGUARDO S.A.C.<br>Uso estrictamente gerencial y confidencial.</div>", unsafe_allow_html=True)
+            st.markdown("<div class='footer-text'>© 2026 J&V RESGUARDO S.A.C.<br>Uso estrictamente gerencial y confidencial.</div>", unsafe_allow_html=True)
+
+    # --- PANTALLA DE LOGIN ---
+    elif st.session_state.vista == "login":
+        col1, col2, col3 = st.columns([2.5, 1.4, 2.5]) 
+        with col2:
+            st.write("<br><br>", unsafe_allow_html=True) 
+            st.markdown("<div class='top-label'>UNIDAD DE RESGUARDO EJECUTIVO</div>", unsafe_allow_html=True)
+            st.markdown("<div class='main-title'>PORTAL DE CONTROL OPERATIVO</div>", unsafe_allow_html=True)
+            st.markdown("<div class='sub-title'>Sistema Integrado de Gestión y Seguimiento</div>", unsafe_allow_html=True)
+            
+            with st.form("login_form"):
+                st.markdown("<h5 style='text-align: center; margin-bottom: 25px; color: #002A8D;'>Credenciales de Acceso</h5>", unsafe_allow_html=True)
+                
+                usuario = st.text_input("Usuario Corporativo")
+                password = st.text_input("Contraseña", type="password")
+                
+                st.write("") 
+                
+                espacio_izq, col_btn1, col_btn2, espacio_der = st.columns([0.5, 1.2, 1.2, 0.5])
+                
+                with col_btn1:
+                    submit = st.form_submit_button("Ingresar")
+                with col_btn2:
+                    register = st.form_submit_button("Solicitar")
+                
+                if register:
+                    st.session_state.vista = "registro"
+                    st.rerun()
+                    
+                if submit:
+                    if usuario == "admin" and password == "123":
+                        st.session_state.logged_in = True
+                        st.rerun()
+                    else:
+                        st.error("Acceso denegado. Contacte al administrador.")
+                        
+            st.markdown("<div class='footer-text'>© 2026 J&V RESGUARDO S.A.C.<br>Uso estrictamente gerencial y confidencial.</div>", unsafe_allow_html=True)
 
 else:
     st.sidebar.markdown("<h3 style='text-align: center; color: #002A8D;'>Módulos de Gestión</h3>", unsafe_allow_html=True)
