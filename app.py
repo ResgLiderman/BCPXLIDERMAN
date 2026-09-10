@@ -285,10 +285,36 @@ else:
         st.rerun()
 
     if menu == "Resumen Ejecutivo":
-        st.markdown("<div class='top-label'>DASHBOARD GENERAL DE OPERACIONES - SETIEMBRE 2026</div>", unsafe_allow_html=True)
+        st.markdown("<div class='top-label'>DASHBOARD EJECUTIVO - EQUIPAMIENTO TÁCTICO BCP</div>", unsafe_allow_html=True)
         
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Personal Activo", "9", "Escolta y G2-G7")
-        col2.metric("Armamento", "100%", "Verificado")
-        col3.metric("Cumplimiento PAC", "89%", "-1 Pendiente", delta_color="inverse")
-        col4.metric("EMOs Vigentes", "77.8%", "1 Observado", delta_color="inverse")
+        try:
+            # Enlace de exportación CSV de la pestaña EQUIPAMIENTO de tu nuevo sheet
+            sheet_url_eq = "https://docs.google.com/spreadsheets/d/1Cs3cV-NdVC6u1sDVhWEKpoP2OvDldzpWVIvx8bf-OSc/export?format=csv&gid=0"
+            df_eq = pd.read_csv(sheet_url_eq, header=1)
+            
+            # Limpieza básica de filas vacías
+            df_eq = df_eq.dropna(subset=['EQUIPO'])
+            
+            # Tarjetas de Métricas Ejecutivas estilo Power BI
+            col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+            col_m1.metric("Ítems Dotación", len(df_eq), "100% Homologado")
+            col_m2.metric("Personal Evaluado", "10 Oficiales", "Activos G2-G7")
+            col_m3.metric("Control Logístico", "Operativo", "Sin Incidencias", delta_color="normal")
+            col_m4.metric("Auditoría BCP", "Aprobada", "Certificado", delta_color="normal")
+            
+            st.write("")
+            st.markdown("##### 🛡️ Matriz de Dotación y Asignación por Oficial")
+            
+            # Filtro interactivo por tipo de equipo
+            equipos_disponibles = ["Todos"] + df_eq['EQUIPO'].tolist()
+            filtro_eq = st.selectbox("Filtrar componente táctico:", equipos_disponibles)
+            
+            df_mostrar = df_eq.copy()
+            if filtro_eq != "Todos":
+                df_mostrar = df_mostrar[df_mostrar['EQUIPO'] == filtro_eq]
+                
+            # Mostrar tabla interactiva con diseño limpio
+            st.dataframe(df_mostrar.set_index('EQUIPO'), use_container_width=True)
+            
+        except Exception as e:
+            st.error("Error al sincronizar con la base de datos de equipamiento. Verifique que la hoja esté compartida como 'Cualquier persona con el vínculo'.")
