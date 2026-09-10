@@ -45,8 +45,15 @@ st.markdown("""
             box-shadow: 0 0 0 0.2rem rgba(0, 42, 141, 0.15) !important;
         }
         
-        /* 4. BOTONES CENTRADOS Y ESTILIZADOS */
-        div.stButton > button {
+        /* Arreglar el botón del ojito de la contraseña (visibility) */
+        [data-testid="stTextInput"] button {
+            background-color: transparent !important;
+            color: #002A8D !important;
+            border: none !important;
+        }
+        
+        /* 4. BOTONES CENTRADOS Y ESTILIZADOS (Corregido para formularios) */
+        div[data-testid="stFormSubmitButton"] > button {
             border-radius: 6px;
             width: 100%;
             font-size: 14px;
@@ -56,22 +63,22 @@ st.markdown("""
         }
         
         /* Botón Ingresar */
-        div[data-testid="column"]:nth-child(2) div.stButton > button {
+        div[data-testid="column"]:nth-child(2) div[data-testid="stFormSubmitButton"] > button {
             background-color: #002A8D !important;
             color: white !important;
             border: none;
         }
-        div[data-testid="column"]:nth-child(2) div.stButton > button:hover {
+        div[data-testid="column"]:nth-child(2) div[data-testid="stFormSubmitButton"] > button:hover {
             background-color: #FF7800 !important; 
         }
 
         /* Botón Solicitar */
-        div[data-testid="column"]:nth-child(3) div.stButton > button {
+        div[data-testid="column"]:nth-child(3) div[data-testid="stFormSubmitButton"] > button {
             background-color: transparent !important;
             color: #002A8D !important;
             border: 1px solid #002A8D !important;
         }
-        div[data-testid="column"]:nth-child(3) div.stButton > button:hover {
+        div[data-testid="column"]:nth-child(3) div[data-testid="stFormSubmitButton"] > button:hover {
             background-color: #F4F6F9 !important;
         }
         
