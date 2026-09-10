@@ -81,6 +81,8 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "vista" not in st.session_state:
     st.session_state.vista = "login"
+if "reg_step" not in st.session_state:
+    st.session_state.reg_step = 1    
 
 if not st.session_state.logged_in:
     
@@ -89,58 +91,88 @@ if not st.session_state.logged_in:
         col1, col2, col3 = st.columns([2.5, 1.4, 2.5]) 
         with col2:
             st.write("<br><br>", unsafe_allow_html=True)
-            st.markdown("<div class='main-title'>SOLICITUD DE ACCESO</div>", unsafe_allow_html=True)
-            st.markdown("<div class='sub-title'>Registro de personal autorizado</div>", unsafe_allow_html=True)
+            st.markdown("<div class='main-title'>AUTENTICACIÓN DE ACCESO</div>", unsafe_allow_html=True)
+            st.markdown("<div class='sub-title'>Sistema de Verificación de Identidad</div>", unsafe_allow_html=True)
             
-            with st.form("registro_form"):
-                nombre = st.text_input("Nombres y Apellidos")
-                cargo = st.text_input("Cargo / Jefatura (Ej. Seguridad Ejecutiva BCP)")
-                correo = st.text_input("Correo Corporativo")
-                
-                st.write("")
-                espacio_izq, col_btn1, col_btn2, espacio_der = st.columns([0.5, 1.2, 1.2, 0.5])
-                with col_btn1:
-                    enviar = st.form_submit_button("Enviar PIN")
-                with col_btn2:
-                    volver = st.form_submit_button("Volver")
-                
-                if volver:
-                    st.session_state.vista = "login"
-                    st.rerun()
-                if enviar:
-                    correo_limpio = correo.strip().lower()
+            # PASO 1: Ingreso de datos y validación de dominio / excepciones
+            if st.session_state.reg_step == 1:
+                with st.form("registro_form_1"):
+                    nombre = st.text_input("Nombres y Apellidos")
+                    cargo = st.text_input("Cargo / Jefatura (Ej. Seguridad Ejecutiva BCP)")
+                    correo = st.text_input("Correo Corporativo")
                     
-                    if not correo_limpio:
-                        st.error("Por favor, ingrese un correo electrónico.")
-                    else:
-                        import random
-                        pin_generado = str(random.randint(100000, 999999))
+                    st.write("")
+                    espacio_izq, col_btn1, col_btn2, espacio_der = st.columns([0.5, 1.2, 1.2, 0.5])
+                    with col_btn1:
+                        enviar = st.form_submit_button("Enviar PIN")
+                    with col_btn2:
+                        volver = st.form_submit_button("Volver")
+                    
+                    if volver:
+                        st.session_state.vista = "login"
+                        st.session_state.reg_step = 1
+                        st.rerun()
                         
-                        # 1. SI ES DOMINIO BCP (Acceso Automático)
-                        if correo_limpio.endswith("@bcp.com.pe"):
-                            st.session_state.temp_correo = correo_limpio
-                            st.session_state.temp_pin = pin_generado
-                            st.success(f"¡Código PIN generado con éxito! (Simulación de envío a {correo_limpio}: {pin_generado})")
-                            # Aquí configuraremos en el siguiente paso el envío real por smtplib
-                        
-                        # 2. SI ES CORREO EXTERNO (Validación en Google Sheets)
+                    if enviar:
+                        correo_limpio = correo.strip().lower()
+                        if not correo_limpio or not nombre:
+                            st.error("Por favor, complete los campos obligatorios.")
                         else:
-                            try:
-                                sheet_url = "https://docs.google.com/spreadsheets/d/1zs4kNTGuEDk6jQ5GWtiHvCZb1VSqrxovfRxqXv3M4MQ/export?format=csv&gid=0"
-                                df_sheets = pd.read_csv(sheet_url)
-                                
-                                # Buscar si el correo existe en la columna 'Correo'
-                                externos_permitidos = df_sheets['Correo'].str.strip().str.lower().tolist()
-                                
-                                if correo_limpio in externos_permitidos:
-                                    st.session_state.temp_correo = correo_limpio
-                                    st.session_state.temp_pin = pin_generado
-                                    st.success(f"¡Excepción externa autorizada! PIN enviado: {pin_generado}")
-                                else:
-                                    st.error("Acceso denegado: Este correo no se encuentra autorizado.")
-                            except Exception as e:
-                                st.error("Error al conectar con la base de datos.")
+                            import random
+                            pin_generado = str(random.randint(100000, 999999))
+                            autorizado = False
+                            
+                            # Validar si es BCP o excepción en Google Sheets
+                            if correo_limpio.endswith("@bcp.com.pe"):
+                                autorizado = True
+                            else:
+                                try:
+                                    sheet_url = "https://docs.google.com/spreadsheets/d/1zs4kNTGuEDk6jQ5GWtiHvCZb1VSqrxovfRxqXv3M4MQ/export?format=csv&gid=0"
+                                    df_sheets = pd.read_csv(sheet_url)
+                                    externos_permitidos = df_sheets['Correo'].str.strip().str.lower().tolist()
+                                    if correo_limpio in externos_permitidos:
+                                        autorizado = True
+                                except Exception:
+                                    pass
+                            
+                            if autorizado:
+                                st.session_state.temp_pin = pin_generado
+                                st.session_state.temp_correo = correo_limpio
+                                st.session_state.reg_step = 2
+                                st.success("¡Correo verificado! Código PIN generado.")
+                                st.rerun()
+                            else:
+                                st.error("Acceso denegado: Dominio no autorizado o correo sin excepción.")
+
+            # PASO 2: Ingreso del PIN recibido y creación de contraseña
+            elif st.session_state.reg_step == 2:
+                st.info(f"Se ha enviado un mensaje ejecutivo al correo: **{st.session_state.temp_correo}**")
+                st.warning(f"[SIMULACIÓN MENSAJE CORPORATIVO] Su código PIN de acceso es: **{st.session_state.temp_pin}**")
+                
+                with st.form("registro_form_2"):
+                    pin_ingresado = st.text_input("Ingrese el PIN de 6 dígitos")
+                    nuevo_password = st.text_input("Defina su Contraseña Definitiva", type="password")
                     
+                    st.write("")
+                    espacio_izq, col_btn1, col_btn2, espacio_der = st.columns([0.5, 1.2, 1.2, 0.5])
+                    with col_btn1:
+                        verificar = st.form_submit_button("Confirmar")
+                    with col_btn2:
+                        regresar = st.form_submit_button("Cancelar")
+                        
+                    if regresar:
+                        st.session_state.reg_step = 1
+                        st.rerun()
+                        
+                    if verificar:
+                        if pin_ingresado.strip() == st.session_state.temp_pin:
+                            st.success("¡Cuenta creada con éxito! Ya puede iniciar sesión.")
+                            st.session_state.reg_step = 1
+                            st.session_state.vista = "login"
+                            st.rerun()
+                        else:
+                            st.error("El PIN ingresado es incorrecto. Verifique el código.")
+
             st.markdown("<div class='footer-text'>© 2026 J&V RESGUARDO S.A.C.<br>Uso estrictamente gerencial y confidencial.</div>", unsafe_allow_html=True)
 
     # --- PANTALLA DE LOGIN ---
