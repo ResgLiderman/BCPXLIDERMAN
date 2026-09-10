@@ -1,41 +1,51 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Control Operativo | J&V Resguardo", layout="wide")
+st.set_page_config(page_title="Control Operativo | J&V Resguardo", layout="wide", initial_sidebar_state="collapsed")
 
 st.markdown("""
     <style>
-        /* Tema Claro Corporativo */
-        .stApp {
-            background-color: #F4F6F9; /* Gris perla muy elegante para el fondo */
+        /* 1. OCULTAR INTERFAZ NATIVA DE STREAMLIT (Fork, Menú, Footer) */
+        header {visibility: hidden !important;}
+        #MainMenu {visibility: hidden !important;}
+        footer {visibility: hidden !important;}
+        [data-testid="stToolbar"] {visibility: hidden !important;}
+        
+        /* 2. FORZAR MODO CLARO CORPORATIVO (Ignora el Dark Mode del PC) */
+        .stApp, [data-testid="stAppViewContainer"] {
+            background-color: #F4F6F9 !important;
+            color: #333333 !important;
         }
         
-        /* Caja del Login estilo Tarjeta Corporativa Blanca */
+        /* Asegurar que todos los textos se mantengan legibles */
+        h1, h2, h3, h4, h5, p, span, label { 
+            font-family: 'Segoe UI', Tahoma, sans-serif !important; 
+        }
+        p, label { color: #495057 !important; font-weight: 500; }
+        h1, h2, h3, h4, h5 { color: #002A8D !important; }
+        
+        /* 3. CAJA DEL LOGIN */
         [data-testid="stForm"] {
-            background: #FFFFFF;
+            background: #FFFFFF !important;
             border: 1px solid #E1E5EB;
             border-radius: 12px; 
             padding: 40px 30px;
-            box-shadow: 0px 10px 30px rgba(0, 42, 141, 0.08); /* Sombra sutil y limpia */
+            box-shadow: 0px 10px 30px rgba(0, 42, 141, 0.08);
         }
         
-        /* Tipografía y colores base */
-        h1, h2, h3, h4, h5 { font-family: 'Segoe UI', Tahoma, sans-serif !important; color: #002A8D !important; }
-        p, label { color: #495057 !important; font-weight: 500; }
-        
-        /* Cajas de texto */
+        /* Cajas de texto (Forzar fondo claro y letras oscuras) */
         .stTextInput input {
-            background-color: #F8F9FA;
-            border: 1px solid #CED4DA;
-            color: #333333;
+            background-color: #F8F9FA !important;
+            border: 1px solid #CED4DA !important;
+            color: #333333 !important;
             border-radius: 6px;
         }
         .stTextInput input:focus {
-            border-color: #002A8D;
-            box-shadow: 0 0 0 0.2rem rgba(0, 42, 141, 0.15);
+            border-color: #002A8D !important;
+            box-shadow: 0 0 0 0.2rem rgba(0, 42, 141, 0.15) !important;
         }
         
-        /* Botones */
+        /* 4. BOTONES CENTRADOS Y ESTILIZADOS */
         div.stButton > button {
             border-radius: 6px;
             width: 100%;
@@ -45,56 +55,37 @@ st.markdown("""
             transition: all 0.3s;
         }
         
-        /* Botón Primario (Ingresar) - Azul Marino */
-        div[data-testid="column"]:nth-child(1) div.stButton > button {
+        /* Botón Ingresar */
+        div[data-testid="column"]:nth-child(2) div.stButton > button {
             background-color: #002A8D !important;
             color: white !important;
             border: none;
         }
-        div[data-testid="column"]:nth-child(1) div.stButton > button:hover {
-            background-color: #FF7800 !important; /* Toque naranja corporativo al pasar el mouse */
-            color: white !important;
+        div[data-testid="column"]:nth-child(2) div.stButton > button:hover {
+            background-color: #FF7800 !important; 
         }
 
-        /* Botón Secundario (Solicitar) - Borde Azul */
-        div[data-testid="column"]:nth-child(2) div.stButton > button {
+        /* Botón Solicitar */
+        div[data-testid="column"]:nth-child(3) div.stButton > button {
             background-color: transparent !important;
             color: #002A8D !important;
             border: 1px solid #002A8D !important;
         }
-        div[data-testid="column"]:nth-child(2) div.stButton > button:hover {
+        div[data-testid="column"]:nth-child(3) div.stButton > button:hover {
             background-color: #F4F6F9 !important;
         }
         
-        /* Textos ejecutivos superiores */
+        /* Elementos de texto */
         .top-label {
-            text-align: center;
-            color: #FF7800; /* Naranja BCP */
-            font-weight: 700;
-            font-size: 12px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 10px;
+            text-align: center; color: #FF7800; font-weight: 700; font-size: 12px;
+            letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;
         }
-        
         .main-title {
-            text-align: center; 
-            font-size: 26px;
-            font-weight: 800;
-            color: #002A8D; /* Azul BCP */
-            margin-bottom: 5px;
+            text-align: center; font-size: 26px; font-weight: 800; color: #002A8D; margin-bottom: 5px;
         }
-        
         .sub-title { text-align: center; color: #6C757D; font-size: 14px; margin-bottom: 35px; }
-        
-        /* Footer Legal */
         .footer-text { 
-            text-align: center; 
-            color: #868E96 !important; 
-            font-size: 11px; 
-            margin-top: 40px; 
-            font-weight: normal;
-            line-height: 1.6;
+            text-align: center; color: #868E96 !important; font-size: 11px; margin-top: 40px; line-height: 1.6;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -106,7 +97,7 @@ if not st.session_state.logged_in:
     col1, col2, col3 = st.columns([2.5, 1.4, 2.5]) 
     
     with col2:
-        st.write("<br><br>", unsafe_allow_html=True) # Espacio para centrar verticalmente
+        st.write("<br><br>", unsafe_allow_html=True) 
         st.markdown("<div class='top-label'>UNIDAD DE RESGUARDO EJECUTIVO</div>", unsafe_allow_html=True)
         st.markdown("<div class='main-title'>PORTAL DE CONTROL OPERATIVO</div>", unsafe_allow_html=True)
         st.markdown("<div class='sub-title'>Sistema Integrado de Gestión y Seguimiento</div>", unsafe_allow_html=True)
@@ -119,7 +110,9 @@ if not st.session_state.logged_in:
             
             st.write("") 
             
-            col_btn1, col_btn2 = st.columns(2)
+            # MAGIA: 4 columnas para empujar los botones al centro
+            espacio_izq, col_btn1, col_btn2, espacio_der = st.columns([0.5, 1.2, 1.2, 0.5])
+            
             with col_btn1:
                 submit = st.form_submit_button("Ingresar")
             with col_btn2:
@@ -132,7 +125,6 @@ if not st.session_state.logged_in:
                 else:
                     st.error("Acceso denegado. Contacte al administrador.")
                     
-        # Copyright actualizado con los requerimientos legales
         st.markdown("<div class='footer-text'>© 2026 J&V RESGUARDO S.A.C.<br>Uso estrictamente gerencial y confidencial.</div>", unsafe_allow_html=True)
 
 else:
