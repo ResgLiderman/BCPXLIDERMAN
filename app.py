@@ -108,7 +108,39 @@ if not st.session_state.logged_in:
                     st.session_state.vista = "login"
                     st.rerun()
                 if enviar:
-                    st.info("Aquí conectaremos el envío del correo con código.")
+                    correo_limpio = correo.strip().lower()
+                    
+                    if not correo_limpio:
+                        st.error("Por favor, ingrese un correo electrónico.")
+                    else:
+                        import random
+                        pin_generado = str(random.randint(100000, 999999))
+                        
+                        # 1. SI ES DOMINIO BCP (Acceso Automático)
+                        if correo_limpio.endswith("@bcp.com.pe"):
+                            st.session_state.temp_correo = correo_limpio
+                            st.session_state.temp_pin = pin_generado
+                            st.success(f"¡Código PIN generado con éxito! (Simulación de envío a {correo_limpio}: {pin_generado})")
+                            # Aquí configuraremos en el siguiente paso el envío real por smtplib
+                        
+                        # 2. SI ES CORREO EXTERNO (Validación en Google Sheets)
+                        else:
+                            try:
+                                # URL de exportación CSV de tu Google Sheet (Asegúrate de que la hoja sea pública para lectura)
+                                sheet_url = "https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/export?format=csv&gid=0"
+                                df_sheets = pd.read_csv(sheet_url)
+                                
+                                # Buscar si el correo existe en la columna 'Correo'
+                                externos_permitidos = df_sheets['Correo'].str.strip().str.lower().tolist()
+                                
+                                if correo_limpio in externos_permitidos:
+                                    st.session_state.temp_correo = correo_limpio
+                                    st.session_state.temp_pin = pin_generado
+                                    st.success(f"¡Excepción externa autorizada! PIN enviado: {pin_generado}")
+                                else:
+                                    st.error("Acceso denegado: Este correo no se encuentra autorizado.")
+                            except Exception as e:
+                                st.error("Error al conectar con la base de datos.")
                     
             st.markdown("<div class='footer-text'>© 2026 J&V RESGUARDO S.A.C.<br>Uso estrictamente gerencial y confidencial.</div>", unsafe_allow_html=True)
 
