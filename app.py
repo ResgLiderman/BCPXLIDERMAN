@@ -5,20 +5,16 @@ st.set_page_config(page_title="Control Operativo | J&V Resguardo", layout="wide"
 
 st.markdown("""
     <style>
-        /* 1. OCULTAR INTERFAZ NATIVA (Fork, Menú, Footer) */
+        /* 1. OCULTAR INTERFAZ NATIVA */
         header {visibility: hidden !important;}
         #MainMenu {visibility: hidden !important;}
         footer {visibility: hidden !important;}
-        [data-testid="stToolbar"] {visibility: hidden !important;}
         
-        /* 2. FORZAR MODO CLARO CORPORATIVO ABSOLUTO */
-        .stApp, [data-testid="stAppViewContainer"] {
-            background-color: #F4F6F9 !important;
-        }
+        /* 2. FORZAR TEMA CLARO */
+        .stApp { background-color: #F4F6F9 !important; }
         
-        h1, h2, h3, h4, h5, p, span, label, div { 
-            font-family: 'Segoe UI', Tahoma, sans-serif !important; 
-        }
+        /* Fuentes solo para texto, evitando romper el ícono del ojito */
+        h1, h2, h3, h4, h5, p, label { font-family: 'Segoe UI', Tahoma, sans-serif !important; }
         label { color: #495057 !important; font-weight: 600 !important; }
         
         /* 3. CAJA DEL LOGIN */
@@ -30,62 +26,43 @@ st.markdown("""
             box-shadow: 0px 10px 30px rgba(0, 42, 141, 0.08) !important;
         }
         
-        /* Cajas de texto */
-        .stTextInput input {
+        /* Solucionar el cuadro negro del ojito y la caja de texto completa */
+        [data-testid="stTextInput"] div[data-baseweb="input"] {
             background-color: #F8F9FA !important;
             border: 1px solid #CED4DA !important;
-            color: #333333 !important;
             border-radius: 6px !important;
         }
-        .stTextInput input:focus {
-            border-color: #002A8D !important;
-            box-shadow: 0 0 0 0.2rem rgba(0, 42, 141, 0.15) !important;
+        [data-testid="stTextInput"] input {
+            color: #333333 !important;
+            background-color: transparent !important; /* Deja ver el fondo claro */
         }
         
-        /* ELIMINAR FONDO NEGRO DEL OJITO DE CONTRASEÑA (Fuerza Bruta) */
-        div[data-testid="stTextInput"] button {
-            background: transparent !important;
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-        }
-        div[data-testid="stTextInput"] button * {
-            fill: #002A8D !important;
-            color: #002A8D !important;
-        }
-        div[data-testid="stTextInput"] button:hover, div[data-testid="stTextInput"] button:focus {
-            background-color: transparent !important;
-        }
-        
-        /* 4. BOTONES CENTRADOS Y ESTILIZADOS */
+        /* 4. BOTONES (Soluciona el fondo negro forzando el color del texto interno) */
         div[data-testid="stForm"] button {
             border-radius: 6px !important;
             width: 100% !important;
             font-size: 14px !important;
             font-weight: bold !important;
             padding: 0.6rem !important;
-            transition: all 0.3s !important;
         }
         
-        /* Botón Ingresar (Fuerza Azul Marino) */
+        /* Botón Ingresar */
         div[data-testid="column"]:nth-child(2) button {
             background-color: #002A8D !important;
-            color: #FFFFFF !important;
             border: none !important;
         }
-        div[data-testid="column"]:nth-child(2) button * { color: #FFFFFF !important; }
+        div[data-testid="column"]:nth-child(2) button p { color: #FFFFFF !important; }
         div[data-testid="column"]:nth-child(2) button:hover { background-color: #FF7800 !important; }
 
-        /* Botón Solicitar (Fuerza Transparente/Borde Azul) */
+        /* Botón Solicitar */
         div[data-testid="column"]:nth-child(3) button {
             background-color: transparent !important;
-            color: #002A8D !important;
             border: 1px solid #002A8D !important;
         }
-        div[data-testid="column"]:nth-child(3) button * { color: #002A8D !important; }
+        div[data-testid="column"]:nth-child(3) button p { color: #002A8D !important; }
         div[data-testid="column"]:nth-child(3) button:hover { background-color: #F4F6F9 !important; }
         
-        /* Elementos de texto */
+        /* Textos */
         .top-label {
             text-align: center; color: #FF7800; font-weight: 700; font-size: 12px;
             letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;
