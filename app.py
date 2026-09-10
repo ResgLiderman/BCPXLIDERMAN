@@ -249,11 +249,30 @@ if not st.session_state.logged_in:
                     st.rerun()
                     
                 if submit:
-                    if usuario == "admin" and password == "123":
+                    usuario_limpio = usuario.strip().lower()
+                    
+                    # 1. Credencial de Administrador General
+                    if usuario_limpio == "admin" and password == "123":
+                        st.session_state.logged_in = True
+                        st.rerun()
+                        
+                    # 2. Validación para usuarios BCP o Excepciones externas
+                    elif usuario_limpio.endswith("@bcp.com.pe"):
                         st.session_state.logged_in = True
                         st.rerun()
                     else:
-                        st.error("Acceso denegado. Contacte al administrador.")
+                        try:
+                            sheet_url = "https://docs.google.com/spreadsheets/d/1zs4kNTGuEDk6jQ5GWtiHvCZb1VSqrxovfRxqXv3M4MQ/export?format=csv&gid=0"
+                            df_sheets = pd.read_csv(sheet_url)
+                            externos_permitidos = df_sheets['Correo'].str.strip().str.lower().tolist()
+                            
+                            if usuario_limpio in externos_permitidos:
+                                st.session_state.logged_in = True
+                                st.rerun()
+                            else:
+                                st.error("Acceso denegado: Credenciales no registradas.")
+                        except Exception:
+                            st.error("Error al validar el acceso con la base de datos.")
                         
             st.markdown("<div class='footer-text'>© 2026 J&V RESGUARDO S.A.C.<br>Uso estrictamente gerencial y confidencial.</div>", unsafe_allow_html=True)
 
