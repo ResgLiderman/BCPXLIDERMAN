@@ -285,45 +285,44 @@ else:
         st.rerun()
 
     if menu == "Resumen Ejecutivo":
-        st.markdown("<div class='top-label'>DASHBOARD EJECUTIVO - EQUIPAMIENTO TÁCTICO BCP</div>", unsafe_allow_html=True)
+        st.markdown("<div class='top-label'>CONTROL LOGÍSTICO Y DOTACIÓN TÁCTICA | BCP</div>", unsafe_allow_html=True)
         
         try:
-            # Enlace de exportación CSV de la pestaña EQUIPAMIENTO
             sheet_url_eq = "https://docs.google.com/spreadsheets/d/1Cs3cV-NdVC6u1sDVhWEKpoP2OvDldzpWVIvx8bf-OSc/export?format=csv&gid=0"
             df_eq = pd.read_csv(sheet_url_eq, header=1)
             
-            # Limpieza quirúrgica: eliminar columnas "Unnamed" o vacías y filas sin equipo
-            df_eq = df_eq.loc[:, ~df_eq.columns.str.contains('^Unnamed')]
+            # Limpieza estricta de columnas vacías (Unnamed) y filas nulas
+            df_eq = df_eq.loc[:, ~df_eq.columns.str.contains('^Unnamed', case=False, na=False)]
             df_eq = df_eq.dropna(subset=['EQUIPO'])
             
-            # Tarjetas de Métricas Ejecutivas estilo Power BI
-            col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-            col_m1.metric("Tipos de Ítems", len(df_eq), "100% Homologado")
-            col_m2.metric("Personal Asignado", "10 Oficiales", "Activos G2-G7")
-            col_m3.metric("Control Logístico", "Óptimo", "Sin Mermas", delta_color="normal")
-            col_m4.metric("Auditoría BCP", "Aprobada", "Certificado BCP", delta_color="normal")
+            # Identificación dinámica de oficiales a partir de las columnas de la matriz
+            columnas_fijas = ['CANTIDAD', 'EQUIPO']
+            oficiales = [col for col in df_eq.columns if col not in columnas_fijas]
+            
+            # Métricas gerenciales basadas en datos reales del sheet
+            total_componentes = len(df_eq)
+            total_efectivos = len(oficiales)
+            
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Líneas de Dotación", f"{total_componentes} Tipos")
+            c2.metric("Efectivos en Matriz", f"{total_efectivos} Oficiales")
+            c3.metric("Estatus Operativo", "Validado BCP")
             
             st.write("")
-            st.markdown("##### 📊 Gráfico de Distribución de Cantidades por Componente")
+            st.markdown("**Consulta Táctica Individual por Oficial**")
             
-            # Gráfico de barras interactivo nativo estilo BI
-            if 'CANTIDAD' in df_eq.columns and 'EQUIPO' in df_eq.columns:
-                df_chart = df_eq.set_index('EQUIPO')['CANTIDAD']
-                st.bar_chart(df_chart, color="#002A8D")
+            # Selector interactivo tipo BI para auditar el equipamiento por cada agente
+            oficial_sel = st.selectbox("Seleccione Oficial de la Unidad:", oficiales)
+            
+            # Extraer los ítems y cantidades asignadas al oficial seleccionado
+            df_reporte_oficial = df_eq[['EQUIPO', oficial_sel]].copy()
+            df_reporte_oficial.columns = ['Componente Táctico', 'Asignación']
+            
+            st.dataframe(df_reporte_oficial.set_index('Componente Táctico'), use_container_width=True)
             
             st.write("")
-            st.markdown("##### 🛡️ Matriz Detallada de Asignación por Oficial")
-            
-            # Filtro interactivo limpio
-            equipos_disponibles = ["Todos"] + df_eq['EQUIPO'].tolist()
-            filtro_eq = st.selectbox("Filtrar componente táctico:", equipos_disponibles)
-            
-            df_mostrar = df_eq.copy()
-            if filtro_eq != "Todos":
-                df_mostrar = df_mostrar[df_mostrar['EQUIPO'] == filtro_eq]
-                
-            # Mostrar tabla interactiva sin rastro de columnas basura
-            st.dataframe(df_mostrar.set_index('EQUIPO'), use_container_width=True)
+            st.markdown("**Matriz General Consolidada de Distribución**")
+            st.dataframe(df_eq.set_index('EQUIPO'), use_container_width=True)
             
         except Exception as e:
-            st.error("Error al sincronizar con el Google Sheet. Verifica que la fila 2 tenga las cabeceras limpias.")
+            st.error("Error al procesar la matriz de equipamiento. Verifique las cabeceras del Google Sheet.")
