@@ -75,23 +75,39 @@ def filtrar_df(df, col='RESGUARDO'):
 # CÁLCULO DE MÉTRICAS GLOBALES
 df_emo = filtrar_df(dfs['emo'])
 df_suc = filtrar_df(dfs['doc_sucamec'])
-df_tiro = filtrar_df(dfs['tiro'][dfs['tiro']['RESGUARDO'] != coordinador]) if resguardo_seleccionado in ["Todos", coordinador] == False or resguardo_seleccionado == "Todos" else pd.DataFrame()
 
 emo_riesgo = len(df_emo[df_emo['DÍAS RESTANTES'] < 30]) if not df_emo.empty else 0
 suc_riesgo = len(df_suc[df_suc['DÍAS RESTANTES SUCAMEC'] < 30]) if not df_suc.empty else 0
-promedio_tiro_global = df_tiro['PROMEDIO'].mean() if not df_tiro.empty and 'PROMEDIO' in df_tiro.columns else 0
 
-col1, col2, col3, col4 = st.columns(4)
+# Motor de cálculo seguro para las 3 disciplinas (Evita el bug del 0.0/20)
+def obtener_nota_segura(hoja):
+    if hoja not in dfs: return 0.0
+    df_temp = filtrar_df(dfs[hoja][dfs[hoja]['RESGUARDO'] != coordinador])
+    if df_temp.empty or 'PROMEDIO' not in df_temp.columns: return 0.0
+    notas = pd.to_numeric(df_temp['PROMEDIO'], errors='coerce').dropna()
+    return notas.mean() if not notas.empty else 0.0
+
+nota_tiro = obtener_nota_segura('tiro')
+nota_maniobra = obtener_nota_segura('maniobra')
+nota_fisico = obtener_nota_segura('apt_fisica')
+
+# Dinamismo de etiquetas: "Promedio" para todos, "Nota" para 1 persona
+etiq_kpi = "Nota" if resguardo_seleccionado != "Todos" else "Prom. Grupal"
+
+# 6 TARJETAS DE ALTO IMPACTO EN FILA
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 with col1:
-    st.markdown(f'<div class="kpi-card"><div class="kpi-title">Dotación Seleccionada</div><div class="kpi-value">{len(df_emo) if not df_emo.empty else 0}</div><div class="kpi-desc">Personal filtrado</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="kpi-card"><div class="kpi-title">Dotación</div><div class="kpi-value">{len(df_emo) if not df_emo.empty else 0}</div><div class="kpi-desc">Filtrada</div></div>', unsafe_allow_html=True)
 with col2:
-    st.markdown(f'<div class="kpi-card"><div class="kpi-title">Alertas EMO (<30 Días)</div><div class="kpi-value alert-{"red" if emo_riesgo > 0 else "green"}">{emo_riesgo}</div><div class="kpi-desc">Riesgo médico</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="kpi-card"><div class="kpi-title">Alerta EMO</div><div class="kpi-value alert-{"red" if emo_riesgo > 0 else "green"}">{emo_riesgo}</div><div class="kpi-desc">< 30 Días</div></div>', unsafe_allow_html=True)
 with col3:
-    st.markdown(f'<div class="kpi-card"><div class="kpi-title">Alertas SUCAMEC (<30 Días)</div><div class="kpi-value alert-{"red" if suc_riesgo > 0 else "green"}">{suc_riesgo}</div><div class="kpi-desc">Vencimientos legales</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="kpi-card"><div class="kpi-title">Alerta SUCAMEC</div><div class="kpi-value alert-{"red" if suc_riesgo > 0 else "green"}">{suc_riesgo}</div><div class="kpi-desc">< 30 Días</div></div>', unsafe_allow_html=True)
 with col4:
-    st.markdown(f'<div class="kpi-card"><div class="kpi-title">Promedio Operativo (Tiro)</div><div class="kpi-value">{promedio_tiro_global:.1f}/20</div><div class="kpi-desc">Rendimiento Táctico Global</div></div>', unsafe_allow_html=True)
-
-tab1, tab2, tab3 = st.tabs(["⚖️ Legal y Médico (EMO/SUCAMEC)", "🎯 Táctico y Físico", "📦 Logística y Capacitación"])
+    st.markdown(f'<div class="kpi-card"><div class="kpi-title">{etiq_kpi} Tiro</div><div class="kpi-value alert-{"red" if nota_tiro < 15.0 else "green"}">{nota_tiro:.1f}</div><div class="kpi-desc">Táctico</div></div>', unsafe_allow_html=True)
+with col5:
+    st.markdown(f'<div class="kpi-card"><div class="kpi-title">{etiq_kpi} Maniob.</div><div class="kpi-value alert-{"red" if nota_maniobra < 15.0 else "green"}">{nota_maniobra:.1f}</div><div class="kpi-desc">Táctico</div></div>', unsafe_allow_html=True)
+with col6:
+    st.markdown(f'<div class="kpi-card"><div class="kpi-title">{etiq_kpi} Físico</div><div class="kpi-value alert-{"red" if nota_fisico < 15.0 else "green"}">{nota_fisico:.1f}</div><div class="kpi-desc">Táctico</div></div>', unsafe_allow_html=True)
 
 with tab1:
     c1, c2 = st.columns(2)
@@ -144,13 +160,14 @@ with tab2:
             obs_df['EVALUACIÓN'] = tipo_eval
             observaciones_globales.append(obs_df)
             
-        fig = px.bar(df_op, x='RESGUARDO', y='PROMEDIO', text_auto='.2f', title=title, 
+        # El estándar mínimo pasa limpio al título
+        fig = px.bar(df_op, x='RESGUARDO', y='PROMEDIO', text_auto='.2f', title=f"{title} (Mín: 15.0)", 
                      color='ESTADO', color_discrete_map={'Riesgo (<15.0)': '#d9534f', 'Óptimo (>=15.0)': '#002A8D'})
         
-        # Línea de corte de alta visibilidad en 15.0
-        fig.add_hline(y=15, line_dash="solid", line_color="#1E293B", line_width=2, annotation_text="ESTÁNDAR MÍNIMO: 15.0", annotation_position="top left")
+        # Línea de corte limpia de alta visibilidad (Cero textos superpuestos)
+        fig.add_hline(y=15, line_dash="solid", line_color="#1E293B", line_width=2)
         
-        # Control de "ladrillo gigante": Si hay 1 solo resguardo, la barra no ocupa toda la pantalla
+        # Control de "ladrillo gigante"
         ancho_barra = 0.3 if len(df_op) == 1 else None 
         
         fig.update_layout(showlegend=False, yaxis_range=[0, 21])
