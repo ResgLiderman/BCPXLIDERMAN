@@ -50,7 +50,7 @@ def cargar_datos():
             dfs[hoja][col_fecha + '_STR'] = dfs[hoja][col_fecha].dt.strftime('%m/%d/%Y')
 
     # Transposición de matrices matriciales (Equipamiento y Capa)
-    for hoja in ['equipamiento', 'capa']:
+    for hoja in ['capa']:
         if hoja in dfs:
             col_id = dfs[hoja].columns[0]
             columnas_resguardos = [c for c in dfs[hoja].columns if c not in [col_id, 'Trimestre', 'TOTAL CURSOS COMPLETADOS'] and not c.startswith('Unnamed')]
@@ -167,11 +167,21 @@ with tab3:
             st.plotly_chart(fig_capa, use_container_width=True)
             
     with c2:
-        if 'equipamiento_flat' in dfs:
+        if 'equipamiento' in dfs:
             st.markdown("**Matriz de Equipamiento Operativo**")
-            df_eq = dfs['equipamiento_flat']
-            df_eq = filtrar_df(df_eq[df_eq['RESGUARDO'] != coordinador])
-            if not df_eq.empty:
-                # Pivotear de vuelta para visualización limpia
-                df_eq_pivot = df_eq.pivot(index='RESGUARDO', columns=df_eq.columns[0], values='VALOR').fillna('-')
-                st.dataframe(df_eq_pivot, use_container_width=True)
+            df_eq = dfs['equipamiento'].copy()
+            
+            # Limpiar filas vacías asegurando que haya un equipo listado
+            if 'EQUIPO' in df_eq.columns:
+                df_eq = df_eq.dropna(subset=['EQUIPO'])
+                
+                # Identificar a los resguardos en las columnas
+                cols_resguardos = [c for c in df_eq.columns if ',' in str(c)]
+                
+                if resguardo_seleccionado != "Todos" and resguardo_seleccionado in df_eq.columns:
+                    # Mostrar la tabla filtrada para un solo resguardo
+                    st.dataframe(df_eq[['CANTIDAD', 'EQUIPO', resguardo_seleccionado]], hide_index=True, use_container_width=True)
+                else:
+                    # Mostrar la matriz corporativa general (excluyendo al coordinador)
+                    cols_finales = ['CANTIDAD', 'EQUIPO'] + [c for c in cols_resguardos if c != coordinador]
+                    st.dataframe(df_eq[[c for c in cols_finales if c in df_eq.columns]], hide_index=True, use_container_width=True)
