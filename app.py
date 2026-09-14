@@ -108,6 +108,7 @@ with col5:
     st.markdown(f'<div class="kpi-card"><div class="kpi-title">{etiq_kpi} Maniob.</div><div class="kpi-value alert-{"red" if nota_maniobra < 15.0 else "green"}">{nota_maniobra:.1f}</div><div class="kpi-desc">Táctico</div></div>', unsafe_allow_html=True)
 with col6:
     st.markdown(f'<div class="kpi-card"><div class="kpi-title">{etiq_kpi} Físico</div><div class="kpi-value alert-{"red" if nota_fisico < 15.0 else "green"}">{nota_fisico:.1f}</div><div class="kpi-desc">Táctico</div></div>', unsafe_allow_html=True)
+tab1, tab2, tab3 = st.tabs(["⚖️ Legal y Médico (EMO/SUCAMEC)", "🎯 Táctico y Físico", "📦 Logística y Capacitación"])
 
 with tab1:
     c1, c2 = st.columns(2)
