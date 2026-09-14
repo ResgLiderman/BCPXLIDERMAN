@@ -77,13 +77,15 @@ def cargar_datos():
     dfs = {}
     for nombre, gid in gids.items():
         try:
-            dfs[nombre] = pd.read_csv(base_url + gid)
+            # MAGIA AQUÍ: header=1 le dice a Pandas que tus títulos están en la fila 2 del Excel
+            dfs[nombre] = pd.read_csv(base_url + gid, header=1)
         except Exception as e:
             st.error(f"Error cargando la pestaña {nombre}: {e}")
             
     # --- PROCESAMIENTO NATIVO DE FECHAS (Ejemplo con ESTATUS EMO) ---
     if 'emo' in dfs:
         df_emo = dfs['emo'].copy()
+        
         # Limpiar espacios en los nombres de las columnas por si acaso
         df_emo.columns = df_emo.columns.str.strip()
         
