@@ -98,90 +98,134 @@ with tab1:
     with c1:
         if not df_emo.empty:
             df_plot = df_emo.sort_values('DÍAS RESTANTES', ascending=True).head(10)
+            # Semáforo binario: Rojo si <30, Azul BCP si >=30
+            df_plot['ESTADO'] = ['Crítico (<30d)' if x < 30 else 'Vigente' for x in df_plot['DÍAS RESTANTES']]
+            
             fig1 = px.bar(df_plot, x='DÍAS RESTANTES', y='RESGUARDO', orientation='h', text='DÍAS RESTANTES',
-                          title="Vencimientos EMO (Críticos arriba)", color='DÍAS RESTANTES', color_continuous_scale=['#d9534f', '#FF7A00', '#002A8D'])
-            fig1.add_vline(x=30, line_dash="dash", line_color="red")
-            fig1.update_layout(yaxis={'categoryorder':'total descending'}, coloraxis_showscale=False)
+                          title="Vencimientos EMO (Críticos arriba)", color='ESTADO', 
+                          color_discrete_map={'Crítico (<30d)': '#d9534f', 'Vigente': '#002A8D'})
+            
+            fig1.add_vline(x=30, line_dash="solid", line_color="#000000", line_width=3, annotation_text="Límite Crítico: 30d", annotation_position="top")
+            fig1.update_layout(yaxis={'categoryorder':'total descending'}, showlegend=True, legend_title=None, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
             fig1.update_traces(textposition='outside', textfont_size=12, textfont_color='black')
             st.plotly_chart(fig1, use_container_width=True)
     with c2:
         if not df_suc.empty:
             df_plot = df_suc.sort_values('DÍAS RESTANTES SUCAMEC', ascending=True).head(10)
+            df_plot['ESTADO'] = ['Crítico (<30d)' if x < 30 else 'Vigente' for x in df_plot['DÍAS RESTANTES SUCAMEC']]
+            
             fig2 = px.bar(df_plot, x='DÍAS RESTANTES SUCAMEC', y='RESGUARDO', orientation='h', text='DÍAS RESTANTES SUCAMEC',
-                          title="Vencimientos Carné SUCAMEC", color='DÍAS RESTANTES SUCAMEC', color_continuous_scale=['#d9534f', '#FF7A00', '#002A8D'])
-            fig2.add_vline(x=30, line_dash="dash", line_color="red")
-            fig2.update_layout(yaxis={'categoryorder':'total descending'}, coloraxis_showscale=False)
-            fig2.update_traces(textposition='outside')
+                          title="Vencimientos Carné SUCAMEC", color='ESTADO', 
+                          color_discrete_map={'Crítico (<30d)': '#d9534f', 'Vigente': '#002A8D'})
+            
+            fig2.add_vline(x=30, line_dash="solid", line_color="#000000", line_width=3, annotation_text="Límite Crítico: 30d", annotation_position="top")
+            fig2.update_layout(yaxis={'categoryorder':'total descending'}, showlegend=True, legend_title=None, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+            fig2.update_traces(textposition='outside', textfont_size=12, textfont_color='black')
             st.plotly_chart(fig2, use_container_width=True)
-
+            
 with tab2:
     st.markdown("**Evaluaciones Operativas (Excluye Coordinador)**")
-    meses = ['ene-26', 'feb-26', 'mar-26', 'abr-26', 'may-26', 'jun-26', 'jul-26', 'ago-26']
     c1, c2, c3 = st.columns(3)
     
-    def plot_eval(df, col_name, title):
+    # Contenedor para agrupar todas las observaciones al final
+    observaciones_globales = []
+    
+    def plot_eval(df, col_name, title, tipo_eval):
         df_op = filtrar_df(df[df['RESGUARDO'] != coordinador]).dropna(subset=['PROMEDIO'])
-        if df_op.empty: return None, None
+        if df_op.empty: return None
+        
         df_op['PROMEDIO'] = pd.to_numeric(df_op['PROMEDIO'], errors='coerce')
-        fig = px.bar(df_op, x='RESGUARDO', y='PROMEDIO', text_auto='.2f', title=title, color='PROMEDIO', color_continuous_scale=['#FF7A00', '#002A8D'])
-        fig.add_hline(y=14, line_dash="dash", line_color="red", annotation_text="Mínimo")
-        fig.update_layout(coloraxis_showscale=False)
-        fig.update_traces(textposition='outside')
-        return fig, df_op[['RESGUARDO', 'PROMEDIO', 'OBS']].dropna(subset=['OBS'])
+        # Lógica de semáforo estricta al 15.0
+        df_op['ESTADO'] = ['Riesgo (<15.0)' if x < 15.0 else 'Óptimo (>=15.0)' for x in df_op['PROMEDIO']]
+        
+        # Guardar observaciones justificadas para el panel inferior
+        obs_df = df_op[['RESGUARDO', 'PROMEDIO', 'OBS']].dropna(subset=['OBS'])
+        if not obs_df.empty:
+            obs_df['EVALUACIÓN'] = tipo_eval
+            observaciones_globales.append(obs_df)
+            
+        fig = px.bar(df_op, x='RESGUARDO', y='PROMEDIO', text_auto='.2f', title=title, 
+                     color='ESTADO', color_discrete_map={'Riesgo (<15.0)': '#d9534f', 'Óptimo (>=15.0)': '#002A8D'})
+        
+        # Línea de corte de alta visibilidad en 15.0
+        fig.add_hline(y=15, line_dash="solid", line_color="#1E293B", line_width=2, annotation_text="ESTÁNDAR MÍNIMO: 15.0", annotation_position="top left")
+        
+        # Control de "ladrillo gigante": Si hay 1 solo resguardo, la barra no ocupa toda la pantalla
+        ancho_barra = 0.3 if len(df_op) == 1 else None 
+        
+        fig.update_layout(showlegend=False, yaxis_range=[0, 21])
+        fig.update_traces(textposition='outside', width=ancho_barra)
+        return fig
 
     with c1:
         if 'tiro' in dfs:
-            f_tiro, obs_tiro = plot_eval(dfs['tiro'], 'PROMEDIO', 'Rendimiento: Tiro')
-            if f_tiro: 
-                st.plotly_chart(f_tiro, use_container_width=True)
-                if not obs_tiro.empty: st.dataframe(obs_tiro, hide_index=True)
+            f_tiro = plot_eval(dfs['tiro'], 'PROMEDIO', 'Rendimiento: Tiro', 'Tiro')
+            if f_tiro: st.plotly_chart(f_tiro, use_container_width=True)
     with c2:
         if 'maniobra' in dfs:
-            f_man, obs_man = plot_eval(dfs['maniobra'], 'PROMEDIO', 'Rendimiento: Maniobra')
-            if f_man: 
-                st.plotly_chart(f_man, use_container_width=True)
-                if not obs_man.empty: st.dataframe(obs_man, hide_index=True)
+            f_man = plot_eval(dfs['maniobra'], 'PROMEDIO', 'Rendimiento: Maniobra', 'Maniobra')
+            if f_man: st.plotly_chart(f_man, use_container_width=True)
     with c3:
         if 'apt_fisica' in dfs:
-            f_apt, obs_apt = plot_eval(dfs['apt_fisica'], 'PROMEDIO', 'Rendimiento: Aptitud Física')
-            if f_apt: 
-                st.plotly_chart(f_apt, use_container_width=True)
-                if not obs_apt.empty: st.dataframe(obs_apt, hide_index=True)
+            f_apt = plot_eval(dfs['apt_fisica'], 'PROMEDIO', 'Rendimiento: Aptitud Física', 'Aptitud Física')
+            if f_apt: st.plotly_chart(f_apt, use_container_width=True)
+            
+    # PANEL UNIFICADO DE EXCEPCIONES OPERATIVAS (Adiós a las tablitas feas)
+    if observaciones_globales:
+        st.markdown("---")
+        st.markdown("<h4 style='color: #d9534f;'>⚠️ Panel de Excepciones y Justificaciones</h4>", unsafe_allow_html=True)
+        df_obs_total = pd.concat(observaciones_globales, ignore_index=True)
+        # Reordenamos columnas para la vista gerencial
+        df_obs_total = df_obs_total[['RESGUARDO', 'EVALUACIÓN', 'PROMEDIO', 'OBS']]
+        st.dataframe(df_obs_total, use_container_width=True, hide_index=True)
 
 with tab3:
     c1, c2 = st.columns([1, 1])
     with c1:
         if 'capa_flat' in dfs:
-            df_capa = dfs['capa_flat']
-            df_capa = df_capa[df_capa['RESGUARDO'] != coordinador]
+            df_capa = dfs['capa_flat'].copy()
+            # Filtro destructor de basura: Quitar al coordinador y la palabra fantasma "CURSO" del eje
+            df_capa = df_capa[(df_capa['RESGUARDO'] != coordinador) & 
+                              (~df_capa['RESGUARDO'].isin(['CURSO', 'TOTAL', 'Trimestre']))]
+            
             df_capa = filtrar_df(df_capa)
             df_capa['VALOR'] = pd.to_numeric(df_capa['VALOR'], errors='coerce').fillna(0)
-            avance = df_capa.groupby('RESGUARDO')['VALOR'].sum().reset_index()
-            # Ajuste de porcentaje asumiendo total de cursos por resguardo
-            total_cursos = len(df_capa['CURSO'].unique()) if 'CURSO' in df_capa.columns else 1
-            avance['% Cumplido'] = (avance['VALOR'] / total_cursos) * 100
             
-            fig_capa = px.bar(avance, x='RESGUARDO', y='% Cumplido', text_auto='.0f', title="Cumplimiento Capacitaciones (%)", color='% Cumplido', color_continuous_scale=['#FF7A00', '#002A8D'])
-            fig_capa.update_traces(textposition='outside')
-            fig_capa.update_layout(coloraxis_showscale=False)
+            avance = df_capa.groupby('RESGUARDO')['VALOR'].sum().reset_index()
+            # Calculamos base estricta de cursos (suponiendo que son 4 módulos)
+            total_cursos_asignados = 16 # Ajusta este número si tu malla de cursos es distinta
+            avance['% Cumplido'] = (avance['VALOR'] / total_cursos_asignados) * 100
+            
+            # Limitar a 100% máximo para evitar roturas visuales si hay datasucia
+            avance['% Cumplido'] = avance['% Cumplido'].apply(lambda x: 100 if x > 100 else x)
+            
+            fig_capa = px.bar(avance, x='RESGUARDO', y='% Cumplido', text_auto='.0f', 
+                              title="Cumplimiento Capacitaciones (%)", color='% Cumplido', 
+                              color_continuous_scale=['#FF7A00', '#002A8D'])
+            
+            # Evitar ladrillo gigante al filtrar
+            ancho_barra_capa = 0.3 if len(avance) == 1 else None
+            
+            fig_capa.update_traces(textposition='outside', width=ancho_barra_capa)
+            fig_capa.update_layout(coloraxis_showscale=False, yaxis_range=[0, 115])
             st.plotly_chart(fig_capa, use_container_width=True)
             
     with c2:
-        if 'equipamiento' in dfs:
-            st.markdown("**Matriz de Equipamiento Operativo**")
+        st.markdown("**Índice Logístico**")
+        st.info("💡 Módulo de Control de Activos sincronizado. Revisa el detalle en el panel inferior.")
+        
+    # ACORDEÓN EXPANDIBLE FULL-WIDTH (Adiós al estrangulamiento visual de la tabla)
+    st.markdown("---")
+    if 'equipamiento' in dfs:
+        with st.expander("📦 VER MATRIZ COMPLETA DE EQUIPAMIENTO OPERATIVO", expanded=False):
             df_eq = dfs['equipamiento'].copy()
             
-            # Limpiar filas vacías asegurando que haya un equipo listado
             if 'EQUIPO' in df_eq.columns:
                 df_eq = df_eq.dropna(subset=['EQUIPO'])
-                
-                # Identificar a los resguardos en las columnas
                 cols_resguardos = [c for c in df_eq.columns if ',' in str(c)]
                 
                 if resguardo_seleccionado != "Todos" and resguardo_seleccionado in df_eq.columns:
-                    # Mostrar la tabla filtrada para un solo resguardo
                     st.dataframe(df_eq[['CANTIDAD', 'EQUIPO', resguardo_seleccionado]], hide_index=True, use_container_width=True)
                 else:
-                    # Mostrar la matriz corporativa general (excluyendo al coordinador)
                     cols_finales = ['CANTIDAD', 'EQUIPO'] + [c for c in cols_resguardos if c != coordinador]
                     st.dataframe(df_eq[[c for c in cols_finales if c in df_eq.columns]], hide_index=True, use_container_width=True)
