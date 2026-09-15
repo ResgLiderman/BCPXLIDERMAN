@@ -144,77 +144,89 @@ with tab2:
     st.markdown("**Evaluaciones Operativas (Excluye Coordinador)**")
     c1, c2, c3 = st.columns(3)
     
-    # Contenedor para agrupar todas las observaciones al final
-    observaciones_globales = []
-    
-    def plot_eval(df, col_name, title, tipo_eval):
-        # 1. Base global limpia (para calcular la media general del equipo)
+    def plot_eval(df, col_name, title):
+        # 1. Base global limpia para el benchmark
         df_base = df[df['RESGUARDO'] != coordinador].dropna(subset=['PROMEDIO']).copy()
         df_base['PROMEDIO'] = pd.to_numeric(df_base['PROMEDIO'], errors='coerce')
         media_grupal = df_base['PROMEDIO'].mean()
         
-        # 2. DataFrame filtrado para la vista actual
+        # 2. Filtro actual
         df_op = filtrar_df(df_base)
         if df_op.empty: return None
-        
-        # Guardar observaciones justificadas para el panel inferior
-        obs_df = df_op[['RESGUARDO', 'PROMEDIO', 'OBS']].dropna(subset=['OBS'])
-        if not obs_df.empty:
-            obs_df['EVALUACIÓN'] = tipo_eval
-            observaciones_globales.append(obs_df)
 
-        # 3. Lógica de UI Inteligente: Comparativo Dual (1 persona) vs Ranking (Todos)
+        # 3. Lógica de UI Inteligente: Comparativo Dual
         if len(df_op) == 1 and resguardo_seleccionado != "Todos":
             nota_indiv = df_op['PROMEDIO'].iloc[0]
             nombre_indiv = df_op['RESGUARDO'].iloc[0]
-            
-            # Construir data comparativa (Persona vs Benchmark)
             df_plot = pd.DataFrame({
                 'RESGUARDO': [nombre_indiv, 'MEDIA GRUPAL (BENCHMARK)'],
                 'PROMEDIO': [nota_indiv, media_grupal],
                 'ESTADO': ['Riesgo (<15.0)' if nota_indiv < 15.0 else 'Óptimo (>=15.0)', 'Benchmark']
             })
-            ancho_barra = 0.4 # Grosor estético para 2 barras
+            ancho_barra = 0.4
         else:
             df_plot = df_op.copy()
             df_plot['ESTADO'] = ['Riesgo (<15.0)' if x < 15.0 else 'Óptimo (>=15.0)' for x in df_plot['PROMEDIO']]
             ancho_barra = None
             
-        # Paleta de colores: Rojo (Mal), Azul (Bien), Gris Plomo (Benchmark Grupal)
         color_map = {'Riesgo (<15.0)': '#d9534f', 'Óptimo (>=15.0)': '#002A8D', 'Benchmark': '#94A3B8'}
 
         fig = px.bar(df_plot, x='RESGUARDO', y='PROMEDIO', text_auto='.2f', title=f"{title} (Mín: 15.0)", 
                      color='ESTADO', color_discrete_map=color_map)
         
-        # 4. Línea Ámbar Punteada: Fuerte pero no asfixia los números (Adiós al negro sólido)
         fig.add_hline(y=15, line_dash="dash", line_color="#D97706", line_width=2.5)
-        
-        # 5. Oxigenación: Techo en 24 para que ningún número choque arriba
         fig.update_layout(showlegend=False, yaxis_range=[0, 24])
         fig.update_traces(textposition='outside', width=ancho_barra)
         return fig
 
     with c1:
         if 'tiro' in dfs:
-            f_tiro = plot_eval(dfs['tiro'], 'PROMEDIO', 'Rendimiento: Tiro', 'Tiro')
+            f_tiro = plot_eval(dfs['tiro'], 'PROMEDIO', 'Rendimiento: Tiro')
             if f_tiro: st.plotly_chart(f_tiro, use_container_width=True)
     with c2:
         if 'maniobra' in dfs:
-            f_man = plot_eval(dfs['maniobra'], 'PROMEDIO', 'Rendimiento: Maniobra', 'Maniobra')
+            f_man = plot_eval(dfs['maniobra'], 'PROMEDIO', 'Rendimiento: Maniobra')
             if f_man: st.plotly_chart(f_man, use_container_width=True)
     with c3:
         if 'apt_fisica' in dfs:
-            f_apt = plot_eval(dfs['apt_fisica'], 'PROMEDIO', 'Rendimiento: Aptitud Física', 'Aptitud Física')
+            f_apt = plot_eval(dfs['apt_fisica'], 'PROMEDIO', 'Rendimiento: Aptitud Física')
             if f_apt: st.plotly_chart(f_apt, use_container_width=True)
             
-    # PANEL UNIFICADO DE EXCEPCIONES OPERATIVAS (Adiós a las tablitas feas)
-    if observaciones_globales:
-        st.markdown("---")
-        st.markdown("<h4 style='color: #d9534f;'>⚠️ Panel de Excepciones y Justificaciones</h4>", unsafe_allow_html=True)
-        df_obs_total = pd.concat(observaciones_globales, ignore_index=True)
-        # Reordenamos columnas para la vista gerencial
-        df_obs_total = df_obs_total[['RESGUARDO', 'EVALUACIÓN', 'PROMEDIO', 'OBS']]
-        st.dataframe(df_obs_total, use_container_width=True, hide_index=True)
+    # PANEL CONSOLIDADO EJECUTIVO
+    st.markdown("---")
+    st.markdown("<h4 style='color: #002A8D;'>🔍 Panel de Control: Desviaciones y Ramp-Up Operativo</h4>", unsafe_allow_html=True)
+    
+    # Juntar datos de las 3 disciplinas
+    df_lista = []
+    for hoja in ['tiro', 'maniobra', 'apt_fisica']:
+        if hoja in dfs:
+            df_temp = filtrar_df(dfs[hoja][dfs[hoja]['RESGUARDO'] != coordinador]).copy()
+            if not df_temp.empty and 'PROMEDIO' in df_temp.columns:
+                df_temp['PROMEDIO'] = pd.to_numeric(df_temp['PROMEDIO'], errors='coerce')
+                # Mapeo de seguridad: leer la nueva columna OBSERVACIÓN (o OBS si olvidaste cambiar alguna)
+                col_obs = 'OBSERVACIÓN' if 'OBSERVACIÓN' in df_temp.columns else ('OBS' if 'OBS' in df_temp.columns else None)
+                if col_obs:
+                    df_lista.append(df_temp[['RESGUARDO', 'PROMEDIO', col_obs]].rename(columns={col_obs: 'OBSERVACIÓN'}))
+    
+    if df_lista:
+        df_concat = pd.concat(df_lista, ignore_index=True)
+        
+        # Agrupar por efectivo: un solo registro por persona con su promedio de las 3 notas
+        df_panel = df_concat.groupby('RESGUARDO').agg({
+            'PROMEDIO': 'mean',
+            # Toma las observaciones y quita duplicados (así no se repite 3 veces lo de Víctor)
+            'OBSERVACIÓN': lambda x: ' | '.join([str(i) for i in x.dropna().unique() if str(i).strip() != ''])
+        }).reset_index()
+        
+        df_panel['PROM. GLOBAL'] = df_panel['PROMEDIO'].round(2)
+        
+        # Filtro Inteligente: Mostrar la fila SOLO si tiene un texto de observación o si el global es < 15
+        df_panel = df_panel[(df_panel['OBSERVACIÓN'] != '') | (df_panel['PROM. GLOBAL'] < 15.0)]
+        
+        if not df_panel.empty:
+            st.dataframe(df_panel[['RESGUARDO', 'PROM. GLOBAL', 'OBSERVACIÓN']], use_container_width=True, hide_index=True)
+        else:
+            st.success("✅ Toda la dotación cumple con el estándar y no presenta alertas operativas.")
 
 with tab3:
     c1, c2 = st.columns([1, 1])
