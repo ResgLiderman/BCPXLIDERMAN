@@ -124,7 +124,7 @@ with tab1:
             
             fig1.add_vline(x=30, line_dash="solid", line_color="#000000", line_width=3, annotation_text="Límite Crítico: 30d", annotation_position="top")
             fig1.update_layout(yaxis={'categoryorder':'total descending'}, showlegend=True, legend_title=None, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-            fig1.update_traces(textposition='outside', textfont_size=12, textfont_color='black')
+            fig1.update_traces(textposition='outside', textfont_size=12, textfont_color='black', width=0.3 if len(df_plot) == 1 else None)
             st.plotly_chart(fig1, use_container_width=True)
     with c2:
         if not df_suc.empty:
@@ -137,7 +137,7 @@ with tab1:
             
             fig2.add_vline(x=30, line_dash="solid", line_color="#000000", line_width=3, annotation_text="Límite Crítico: 30d", annotation_position="top")
             fig2.update_layout(yaxis={'categoryorder':'total descending'}, showlegend=True, legend_title=None, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-            fig2.update_traces(textposition='outside', textfont_size=12, textfont_color='black')
+            fig2.update_traces(textposition='outside', textfont_size=12, textfont_color='black', width=0.3 if len(df_plot) == 1 else None)
             st.plotly_chart(fig2, use_container_width=True)
             
 with tab2:
@@ -148,30 +148,49 @@ with tab2:
     observaciones_globales = []
     
     def plot_eval(df, col_name, title, tipo_eval):
-        df_op = filtrar_df(df[df['RESGUARDO'] != coordinador]).dropna(subset=['PROMEDIO'])
-        if df_op.empty: return None
+        # 1. Base global limpia (para calcular la media general del equipo)
+        df_base = df[df['RESGUARDO'] != coordinador].dropna(subset=['PROMEDIO']).copy()
+        df_base['PROMEDIO'] = pd.to_numeric(df_base['PROMEDIO'], errors='coerce')
+        media_grupal = df_base['PROMEDIO'].mean()
         
-        df_op['PROMEDIO'] = pd.to_numeric(df_op['PROMEDIO'], errors='coerce')
-        # Lógica de semáforo estricta al 15.0
-        df_op['ESTADO'] = ['Riesgo (<15.0)' if x < 15.0 else 'Óptimo (>=15.0)' for x in df_op['PROMEDIO']]
+        # 2. DataFrame filtrado para la vista actual
+        df_op = filtrar_df(df_base)
+        if df_op.empty: return None
         
         # Guardar observaciones justificadas para el panel inferior
         obs_df = df_op[['RESGUARDO', 'PROMEDIO', 'OBS']].dropna(subset=['OBS'])
         if not obs_df.empty:
             obs_df['EVALUACIÓN'] = tipo_eval
             observaciones_globales.append(obs_df)
+
+        # 3. Lógica de UI Inteligente: Comparativo Dual (1 persona) vs Ranking (Todos)
+        if len(df_op) == 1 and resguardo_seleccionado != "Todos":
+            nota_indiv = df_op['PROMEDIO'].iloc[0]
+            nombre_indiv = df_op['RESGUARDO'].iloc[0]
             
-        # El estándar mínimo pasa limpio al título
-        fig = px.bar(df_op, x='RESGUARDO', y='PROMEDIO', text_auto='.2f', title=f"{title} (Mín: 15.0)", 
-                     color='ESTADO', color_discrete_map={'Riesgo (<15.0)': '#d9534f', 'Óptimo (>=15.0)': '#002A8D'})
+            # Construir data comparativa (Persona vs Benchmark)
+            df_plot = pd.DataFrame({
+                'RESGUARDO': [nombre_indiv, 'MEDIA GRUPAL (BENCHMARK)'],
+                'PROMEDIO': [nota_indiv, media_grupal],
+                'ESTADO': ['Riesgo (<15.0)' if nota_indiv < 15.0 else 'Óptimo (>=15.0)', 'Benchmark']
+            })
+            ancho_barra = 0.4 # Grosor estético para 2 barras
+        else:
+            df_plot = df_op.copy()
+            df_plot['ESTADO'] = ['Riesgo (<15.0)' if x < 15.0 else 'Óptimo (>=15.0)' for x in df_plot['PROMEDIO']]
+            ancho_barra = None
+            
+        # Paleta de colores: Rojo (Mal), Azul (Bien), Gris Plomo (Benchmark Grupal)
+        color_map = {'Riesgo (<15.0)': '#d9534f', 'Óptimo (>=15.0)': '#002A8D', 'Benchmark': '#94A3B8'}
+
+        fig = px.bar(df_plot, x='RESGUARDO', y='PROMEDIO', text_auto='.2f', title=f"{title} (Mín: 15.0)", 
+                     color='ESTADO', color_discrete_map=color_map)
         
-        # Línea de corte limpia de alta visibilidad (Cero textos superpuestos)
-        fig.add_hline(y=15, line_dash="solid", line_color="#1E293B", line_width=2)
+        # 4. Línea Ámbar Punteada: Fuerte pero no asfixia los números (Adiós al negro sólido)
+        fig.add_hline(y=15, line_dash="dash", line_color="#D97706", line_width=2.5)
         
-        # Control de "ladrillo gigante"
-        ancho_barra = 0.3 if len(df_op) == 1 else None 
-        
-        fig.update_layout(showlegend=False, yaxis_range=[0, 21])
+        # 5. Oxigenación: Techo en 24 para que ningún número choque arriba
+        fig.update_layout(showlegend=False, yaxis_range=[0, 24])
         fig.update_traces(textposition='outside', width=ancho_barra)
         return fig
 
