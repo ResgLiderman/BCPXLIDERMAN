@@ -100,7 +100,7 @@ lista_resguardos = dfs['emo']['RESGUARDO'].dropna().unique().tolist() if 'emo' i
 # ==========================================
 # 3. SISTEMA DE FILTRADO TÁCTICO (SIDEBAR)
 # ==========================================
-st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Banco_de_Cr%C3%A9dito_del_Per%C3%BA_Logo.svg/1024px-Banco_de_Cr%C3%A9dito_del_Per%C3%BA_Logo.svg.png", width=150)
+st.sidebar.image("BCP.PNG", width=150)
 st.sidebar.markdown("---")
 st.sidebar.title("⚙️ Filtro Operativo")
 resguardo_seleccionado = st.sidebar.selectbox("Fijar Objetivo (Resguardo):", ["Todos"] + lista_resguardos)
