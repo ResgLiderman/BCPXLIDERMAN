@@ -102,18 +102,18 @@ lista_resguardos = dfs['emo']['RESGUARDO'].dropna().unique().tolist() if 'emo' i
 # ==========================================
 # ✅ PEGA ESTE BLOQUE COMPLETO:
 logo_svg = """
-<div style="display: flex; justify-content: center; padding-bottom: 10px;">
-    <svg width="160" height="50" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
-        <!-- Flecha Izquierda Naranja -->
-        <path d="M 5 15 L 20 30 L 5 45 L 13 52 L 35 30 L 13 8 Z" fill="#FF7A00"/>
-        <!-- Texto Central BCP -->
-        <text x="48" y="42" font-family="'Inter', sans-serif" font-size="42" font-weight="900" font-style="italic" fill="#FFFFFF" letter-spacing="1">BCP</text>
-        <!-- Flecha Derecha Naranja -->
-        <path d="M 145 15 L 160 30 L 145 45 L 153 52 L 175 30 L 153 8 Z" fill="#FF7A00"/>
-    </svg>
-</div>
-"""
-st.sidebar.markdown(logo_svg, unsafe_allow_html=True)
+    <div style="display: flex; justify-content: center; padding-bottom: 10px;">
+        <svg width="160" height="50" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+            <!-- Flecha Izquierda Naranja -->
+            <path d="M 5 15 L 20 30 L 5 45 L 13 52 L 35 30 L 13 8 Z" fill="#FF7A00"/>
+            <!-- Texto Central BCP (Color Azul BCP) -->
+            <text x="48" y="42" font-family="'Inter', sans-serif" font-size="42" font-weight="900" font-style="italic" fill="#002A8D" letter-spacing="1">BCP</text>
+            <!-- Flecha Derecha Naranja -->
+            <path d="M 145 15 L 160 30 L 145 45 L 153 52 L 175 30 L 153 8 Z" fill="#FF7A00"/>
+        </svg>
+    </div>
+    """
+    st.sidebar.markdown(logo_svg, unsafe_allow_html=True)
 st.sidebar.markdown("---")
 st.sidebar.title("⚙️ Filtro Operativo")
 resguardo_seleccionado = st.sidebar.selectbox("Fijar Objetivo (Resguardo):", ["Todos"] + lista_resguardos)
