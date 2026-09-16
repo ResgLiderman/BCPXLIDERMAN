@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
+from st_aggrid import AgGrid, GridOptionsBuilder
 
 # CONFIGURACIÓN CORPORATIVA
 st.set_page_config(page_title="Dashboard BI - Operaciones", page_icon="🛡️", layout="wide")
@@ -108,6 +109,7 @@ with col5:
     st.markdown(f'<div class="kpi-card"><div class="kpi-title">{etiq_kpi} Maniob.</div><div class="kpi-value alert-{"red" if nota_maniobra < 15.0 else "green"}">{nota_maniobra:.1f}</div><div class="kpi-desc">Táctico</div></div>', unsafe_allow_html=True)
 with col6:
     st.markdown(f'<div class="kpi-card"><div class="kpi-title">{etiq_kpi} Físico</div><div class="kpi-value alert-{"red" if nota_fisico < 15.0 else "green"}">{nota_fisico:.1f}</div><div class="kpi-desc">Táctico</div></div>', unsafe_allow_html=True)
+
 tab1, tab2, tab3 = st.tabs(["⚖️ Legal y Médico (EMO/SUCAMEC)", "🎯 Táctico y Físico", "📦 Logística y Capacitación"])
 
 with tab1:
@@ -115,7 +117,6 @@ with tab1:
     with c1:
         if not df_emo.empty:
             df_plot = df_emo.sort_values('DÍAS RESTANTES', ascending=True).head(10)
-            # Semáforo binario: Rojo si <30, Azul BCP si >=30
             df_plot['ESTADO'] = ['Crítico (<30d)' if x < 30 else 'Vigente' for x in df_plot['DÍAS RESTANTES']]
             
             fig1 = px.bar(df_plot, x='DÍAS RESTANTES', y='RESGUARDO', orientation='h', text='DÍAS RESTANTES',
@@ -145,16 +146,13 @@ with tab2:
     c1, c2, c3 = st.columns(3)
     
     def plot_eval(df, col_name, title):
-        # 1. Base global limpia para el benchmark
         df_base = df[df['RESGUARDO'] != coordinador].dropna(subset=['PROMEDIO']).copy()
         df_base['PROMEDIO'] = pd.to_numeric(df_base['PROMEDIO'], errors='coerce')
         media_grupal = df_base['PROMEDIO'].mean()
         
-        # 2. Filtro actual
         df_op = filtrar_df(df_base)
         if df_op.empty: return None
 
-        # 3. Lógica de UI Inteligente: Comparativo Dual
         if len(df_op) == 1 and resguardo_seleccionado != "Todos":
             nota_indiv = df_op['PROMEDIO'].iloc[0]
             nombre_indiv = df_op['RESGUARDO'].iloc[0]
@@ -192,18 +190,16 @@ with tab2:
             f_apt = plot_eval(dfs['apt_fisica'], 'PROMEDIO', 'Rendimiento: Aptitud Física')
             if f_apt: st.plotly_chart(f_apt, use_container_width=True)
             
-    # PANEL CONSOLIDADO EJECUTIVO
+    # PANEL CONSOLIDADO EJECUTIVO CON AG-GRID
     st.markdown("---")
     st.markdown("<h4 style='color: #002A8D;'>🔍 Panel de Control: Desviaciones y Ramp-Up Operativo</h4>", unsafe_allow_html=True)
     
-    # Juntar datos de las 3 disciplinas
     df_lista = []
     for hoja in ['tiro', 'maniobra', 'apt_fisica']:
         if hoja in dfs:
             df_temp = filtrar_df(dfs[hoja][dfs[hoja]['RESGUARDO'] != coordinador]).copy()
             if not df_temp.empty and 'PROMEDIO' in df_temp.columns:
                 df_temp['PROMEDIO'] = pd.to_numeric(df_temp['PROMEDIO'], errors='coerce')
-                # Mapeo de seguridad: leer la nueva columna OBSERVACIÓN (o OBS si olvidaste cambiar alguna)
                 col_obs = 'OBSERVACIÓN' if 'OBSERVACIÓN' in df_temp.columns else ('OBS' if 'OBS' in df_temp.columns else None)
                 if col_obs:
                     df_lista.append(df_temp[['RESGUARDO', 'PROMEDIO', col_obs]].rename(columns={col_obs: 'OBSERVACIÓN'}))
@@ -211,20 +207,39 @@ with tab2:
     if df_lista:
         df_concat = pd.concat(df_lista, ignore_index=True)
         
-        # Agrupar por efectivo: un solo registro por persona con su promedio de las 3 notas
         df_panel = df_concat.groupby('RESGUARDO').agg({
             'PROMEDIO': 'mean',
-            # Toma las observaciones y quita duplicados (así no se repite 3 veces lo de Víctor)
             'OBSERVACIÓN': lambda x: ' | '.join([str(i) for i in x.dropna().unique() if str(i).strip() != ''])
         }).reset_index()
         
         df_panel['PROM. GLOBAL'] = df_panel['PROMEDIO'].round(2)
-        
-        # Filtro Inteligente: Mostrar la fila SOLO si tiene un texto de observación o si el global es < 15
         df_panel = df_panel[(df_panel['OBSERVACIÓN'] != '') | (df_panel['PROM. GLOBAL'] < 15.0)]
         
         if not df_panel.empty:
-            st.dataframe(df_panel[['RESGUARDO', 'PROM. GLOBAL', 'OBSERVACIÓN']], use_container_width=True, hide_index=True)
+            # Preparamos el DataFrame final limpio para Ag-Grid
+            df_aggrid = df_panel[['RESGUARDO', 'PROM. GLOBAL', 'OBSERVACIÓN']].copy()
+            
+            gb = GridOptionsBuilder.from_dataframe(df_aggrid)
+            gb.configure_pagination(paginationAutoPageSize=False, paginationPageSize=10)
+            gb.configure_side_bar() # Habilita panel lateral de filtros y columnas
+            gb.configure_default_column(editable=False, groupable=True, sortable=True, filterable=True)
+            
+            # Configuración específica de columnas y alineación
+            gb.configure_column("RESGUARDO", headerName="RESGUARDO", width=280, pinned=True)
+            gb.configure_column("PROM. GLOBAL", headerName="PROM. GLOBAL", width=140, type=["numericColumn"], precision=2)
+            gb.configure_column("OBSERVACIÓN", headerName="OBSERVACIÓN / DIAGNÓSTICO", width=450)
+            
+            grid_options = gb.build()
+            
+            AgGrid(
+                df_aggrid,
+                gridOptions=grid_options,
+                height=320,
+                fit_columns_on_grid_load=True,
+                theme="balham", # Tema corporativo limpio
+                enable_enterprise_modules=False,
+                allow_unsafe_jscode=True
+            )
         else:
             st.success("✅ Toda la dotación cumple con el estándar y no presenta alertas operativas.")
 
@@ -233,7 +248,6 @@ with tab3:
     with c1:
         if 'capa_flat' in dfs:
             df_capa = dfs['capa_flat'].copy()
-            # Filtro destructor de basura: Quitar al coordinador y la palabra fantasma "CURSO" del eje
             df_capa = df_capa[(df_capa['RESGUARDO'] != coordinador) & 
                               (~df_capa['RESGUARDO'].isin(['CURSO', 'TOTAL', 'Trimestre']))]
             
@@ -241,18 +255,15 @@ with tab3:
             df_capa['VALOR'] = pd.to_numeric(df_capa['VALOR'], errors='coerce').fillna(0)
             
             avance = df_capa.groupby('RESGUARDO')['VALOR'].sum().reset_index()
-            # Calculamos base estricta de cursos (suponiendo que son 4 módulos)
-            total_cursos_asignados = 16 # Ajusta este número si tu malla de cursos es distinta
+            total_cursos_asignados = 16 
             avance['% Cumplido'] = (avance['VALOR'] / total_cursos_asignados) * 100
             
-            # Limitar a 100% máximo para evitar roturas visuales si hay datasucia
             avance['% Cumplido'] = avance['% Cumplido'].apply(lambda x: 100 if x > 100 else x)
             
             fig_capa = px.bar(avance, x='RESGUARDO', y='% Cumplido', text_auto='.0f', 
-                              title="Cumplimiento Capacitaciones (%)", color='% Cumplido', 
-                              color_continuous_scale=['#FF7A00', '#002A8D'])
+                            title="Cumplimiento Capacitaciones (%)", color='% Cumplido', 
+                            color_continuous_scale=['#FF7A00', '#002A8D'])
             
-            # Evitar ladrillo gigante al filtrar
             ancho_barra_capa = 0.3 if len(avance) == 1 else None
             
             fig_capa.update_traces(textposition='outside', width=ancho_barra_capa)
@@ -263,7 +274,6 @@ with tab3:
         st.markdown("**Índice Logístico**")
         st.info("💡 Módulo de Control de Activos sincronizado. Revisa el detalle en el panel inferior.")
         
-    # ACORDEÓN EXPANDIBLE FULL-WIDTH (Adiós al estrangulamiento visual de la tabla)
     st.markdown("---")
     if 'equipamiento' in dfs:
         with st.expander("📦 VER MATRIZ COMPLETA DE EQUIPAMIENTO OPERATIVO", expanded=False):
