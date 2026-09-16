@@ -272,9 +272,18 @@ with tab1:
         fig.update_layout(showlegend=False, yaxis_range=[0, 24])
         return fig
 
-    with c1: st.plotly_chart(plot_eval(dfs['tiro'], 'Desempeño: Tiro'), use_container_width=True) if 'tiro' in dfs else None
-    with c2: st.plotly_chart(plot_eval(dfs['maniobra'], 'Desempeño: Maniobra'), use_container_width=True) if 'maniobra' in dfs else None
-    with c3: st.plotly_chart(plot_eval(dfs['apt_fisica'], 'Desempeño: Apt. Física'), use_container_width=True) if 'apt_fisica' in dfs else None
+    with c1:
+        if 'tiro' in dfs:
+            f_tiro = plot_eval(dfs['tiro'], 'Desempeño: Tiro')
+            if f_tiro: st.plotly_chart(f_tiro, use_container_width=True)
+    with c2:
+        if 'maniobra' in dfs:
+            f_man = plot_eval(dfs['maniobra'], 'Desempeño: Maniobra')
+            if f_man: st.plotly_chart(f_man, use_container_width=True)
+    with c3:
+        if 'apt_fisica' in dfs:
+            f_apt = plot_eval(dfs['apt_fisica'], 'Desempeño: Apt. Física')
+            if f_apt: st.plotly_chart(f_apt, use_container_width=True)
 
 with tab2:
     v1, v2 = st.columns(2)
