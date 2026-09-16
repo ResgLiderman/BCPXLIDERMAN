@@ -295,10 +295,19 @@ with tab2:
                           color_discrete_map={'Crítico': '#d9534f', 'Vigente': '#002A8D'})
             fig1.add_vline(x=30, line_dash="solid", line_color="black")
             st.plotly_chart(fig1, use_container_width=True)
+            
     with v2:
         if 'vacaciones' in dfs and not dfs['vacaciones'].empty:
             st.markdown("**🌴 Registro de Vacaciones (RRHH)**")
-            st.dataframe(filtrar_df(dfs['vacaciones'])[['RESGUARDO', 'OBSERVACIÓN']], use_container_width=True, hide_index=True)
+            df_vac = filtrar_df(dfs['vacaciones'])
+            # Selección segura: Lee las columnas solo si existen en el Google Sheet
+            cols_seguras = [c for c in ['RESGUARDO', 'OBSERVACIÓN', 'OBS'] if c in df_vac.columns]
+            
+            if cols_seguras:
+                st.dataframe(df_vac[cols_seguras], use_container_width=True, hide_index=True)
+            else:
+                # Si las columnas tienen nombres completamente distintos, muestra toda la tabla por seguridad
+                st.dataframe(df_vac, use_container_width=True, hide_index=True)
 
 with tab3:
     st.markdown("**📦 Módulo Logístico y Control de Activos**")
