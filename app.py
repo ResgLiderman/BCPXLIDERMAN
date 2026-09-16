@@ -113,7 +113,7 @@ logo_svg = """
         </svg>
     </div>
     """
-    st.sidebar.markdown(logo_svg, unsafe_allow_html=True)
+st.sidebar.markdown(logo_svg, unsafe_allow_html=True)
 st.sidebar.markdown("---")
 st.sidebar.title("⚙️ Filtro Operativo")
 resguardo_seleccionado = st.sidebar.selectbox("Fijar Objetivo (Resguardo):", ["Todos"] + lista_resguardos)
