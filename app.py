@@ -101,30 +101,20 @@ lista_resguardos = dfs['emo']['RESGUARDO'].dropna().unique().tolist() if 'emo' i
 # 3. SISTEMA DE FILTRADO TÁCTICO (SIDEBAR)
 # ==========================================
 # ✅ PEGA ESTE BLOQUE COMPLETO:
-logo_svg = """
-    <div style="display: flex; justify-content: center; padding-bottom: 20px; padding-top: 10px;">
-        <svg width="220" height="60" viewBox="0 0 220 60" xmlns="http://www.w3.org/2000/svg">
-            <!-- Icono Izquierdo (Swoosh Curvo) -->
-            <g transform="translate(0, 0)">
-                <!-- Parte Superior Azul -->
-                <path d="M 10,20 C 15,5 32,8 45,30 C 32,22 18,25 10,30 C 8,26 8,24 10,20 Z" fill="#002A8D"/>
-                <!-- Parte Inferior Naranja -->
-                <path d="M 10,40 C 15,55 32,52 45,30 C 32,38 18,35 10,30 C 8,34 8,36 10,40 Z" fill="#FF7A00"/>
-            </g>
-            
-            <!-- Texto Central BCP -->
-            <text x="54" y="44" font-family="'Inter', 'Arial Black', sans-serif" font-size="46" font-weight="900" font-style="italic" fill="#002A8D" letter-spacing="-2">BCP</text>
-            
-            <!-- Icono Derecho (IDÉNTICO, apuntando a la misma dirección) -->
-            <g transform="translate(155, 0)">
-                <!-- Parte Superior Azul -->
-                <path d="M 10,20 C 15,5 32,8 45,30 C 32,22 18,25 10,30 C 8,26 8,24 10,20 Z" fill="#002A8D"/>
-                <!-- Parte Inferior Naranja -->
-                <path d="M 10,40 C 15,55 32,52 45,30 C 32,38 18,35 10,30 C 8,34 8,36 10,40 Z" fill="#FF7A00"/>
-            </g>
-        </svg>
-    </div>
-    """
+logo_svg = """<div style="display: flex; justify-content: center; padding-bottom: 20px; padding-top: 10px;">
+<svg width="220" height="60" viewBox="0 0 220 60" xmlns="http://www.w3.org/2000/svg">
+<g transform="translate(0, 0)">
+<path d="M 10,20 C 15,5 32,8 45,30 C 32,22 18,25 10,30 C 8,26 8,24 10,20 Z" fill="#002A8D"/>
+<path d="M 10,40 C 15,55 32,52 45,30 C 32,38 18,35 10,30 C 8,34 8,36 10,40 Z" fill="#FF7A00"/>
+</g>
+<text x="54" y="44" font-family="'Inter', 'Arial Black', sans-serif" font-size="46" font-weight="900" font-style="italic" fill="#002A8D" letter-spacing="-2">BCP</text>
+<g transform="translate(155, 0)">
+<path d="M 10,20 C 15,5 32,8 45,30 C 32,22 18,25 10,30 C 8,26 8,24 10,20 Z" fill="#002A8D"/>
+<path d="M 10,40 C 15,55 32,52 45,30 C 32,38 18,35 10,30 C 8,34 8,36 10,40 Z" fill="#FF7A00"/>
+</g>
+</svg>
+</div>"""
+
 st.sidebar.markdown(logo_svg, unsafe_allow_html=True)
 st.sidebar.markdown("---")
 st.sidebar.title("⚙️ Filtro Operativo")
