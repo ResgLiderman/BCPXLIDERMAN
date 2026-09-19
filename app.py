@@ -2,10 +2,11 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import requests
-from st_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode, GridUpdateMode
+from st_aggrid import AgGrid, GridOptionsBuilder
 from streamlit_echarts import st_echarts
 from datetime import datetime
 from streamlit_lottie import st_lottie
+from supabase import create_client, Client # <-- NUEVA INTEGRACIÓN NÚCLEO
 
 def cargar_animacion_hacker(url: str):
     r = requests.get(url)
@@ -55,13 +56,28 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. MOTOR DE EXTRACCIÓN DE DATOS (DATA LAKE)
+# 2. MOTOR SUPABASE & SISTEMA HÍBRIDO (DATA LAKE)
 # ==========================================
-@st.cache_data(ttl=600)
+# Inicializar Supabase encriptado desde st.secrets
+@st.cache_resource
+def init_supabase() -> Client:
+    try:
+        url = st.secrets["supabase"]["url"]
+        key = st.secrets["supabase"]["key"]
+        return create_client(url, key)
+    except Exception as e:
+        st.error("⚠️ Enlace con Base de Datos BCP-Liderman no establecido. Revisa st.secrets.")
+        return None
+
+supabase = init_supabase()
+
+@st.cache_data(ttl=60) # TTL reducido a 60s preparándonos para el Tiempo Real
 def cargar_datos():
+    # MODO HÍBRIDO: Mientras pasamos las tablas a Supabase, mantenemos Sheets
+    # como motor de respaldo para que la app no se caiga.
     sheet_id = "1Cs3cV-NdVC6u1sDVhWEKpoP2OvDldzpWVIvx8bf-OSc"
     base_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid="
-    # Todas las pestañas integradas
+    
     gids = {
         'equipamiento': '0', 'doc_sucamec': '2135347375', 'lic_sucamec': '371955966',
         'capa': '1864610226', 'tiro': '1062108520', 'maniobra': '495125468',
@@ -71,13 +87,13 @@ def cargar_datos():
     dfs = {}
     for nombre, gid in gids.items():
         try:
+            # En el futuro, reemplazaremos estas líneas por consultas directas a supabase.table(nombre).select("*")
             df = pd.read_csv(base_url + gid, header=1)
             df.columns = df.columns.str.strip()
             if 'RESGUARDO' in df.columns:
                 df['RESGUARDO'] = df['RESGUARDO'].astype(str).str.strip()
             dfs[nombre] = df
         except Exception as e:
-            st.warning(f"Error cargando matriz: {nombre}")
             dfs[nombre] = pd.DataFrame()
             
     hoy = pd.Timestamp.today()
@@ -93,7 +109,7 @@ def cargar_datos():
             dfs[hoja][col_fecha] = pd.to_datetime(dfs[hoja][col_fecha], format='%d/%m/%Y', errors='coerce')
             dfs[hoja][col_nueva] = (dfs[hoja][col_fecha] - hoy).dt.days
 
-    # Aplanado Matricial
+    # Aplanado Matricial Capacitaciones
     if 'capa' in dfs and not dfs['capa'].empty:
         col_id = dfs['capa'].columns[0]
         cols_res = [c for c in dfs['capa'].columns if c not in [col_id, 'Trimestre', 'TOTAL CURSOS COMPLETADOS'] and not c.startswith('Unnamed')]
@@ -113,11 +129,9 @@ st.sidebar.markdown("---")
 st.sidebar.title("⚙️ Filtro Operativo")
 resguardo_seleccionado = st.sidebar.radio("Fijar Objetivo (Resguardo):", ["Todos"] + lista_resguardos)
 
-# Descargamos un radar de seguridad en formato JSON
 radar_url = "https://lottie.host/7c7328bf-4277-4011-a54c-1123f13fb46e/a70i3dXVGk.json"
 animacion_radar = cargar_animacion_hacker(radar_url)
 
-# Lo inyectamos en la barra lateral
 if animacion_radar:
     with st.sidebar:
         st_lottie(animacion_radar, height=150, key="radar_seguridad")
@@ -138,7 +152,6 @@ def obtener_nota_segura(hoja):
 # 4. VISTA DE DOSSIER EJECUTIVO (MODAL INTEGRADO)
 # ==========================================
 if resguardo_seleccionado != "Todos":
-    # 💥 AQUÍ OCURRE LA MAGIA DEL DOSSIER INDIVIDUAL
     nota_t = obtener_nota_segura('tiro')
     nota_m = obtener_nota_segura('maniobra')
     nota_f = obtener_nota_segura('apt_fisica')
@@ -154,15 +167,14 @@ if resguardo_seleccionado != "Todos":
     d_col1, d_col2 = st.columns([1, 2])
     
     with d_col1:
-        st.markdown("**🕷️ Perfil Táctico (ECharts Spider Chart)**")
-        # El Gráfico de Araña 3D
+        st.markdown("**🕷️ Perfil Táctico (Spider Chart)**")
         options = {
             "tooltip": {},
-            "legend": {"data": ["Desempeño Actual", "Umbral Mínimo (Riesgo)", "Estándar BCP (Ideal)"], "bottom": 0},
+            "legend": {"data": ["Desempeño Actual", "Umbral Mínimo", "Estándar BCP"], "bottom": 0},
             "radar": {
                 "indicator": [
                     {"name": '🎯 Tiro', "max": 20},
-                    {"name": '🏃 Aptitud Física', "max": 20},
+                    {"name": '🏃 Física', "max": 20},
                     {"name": '🛡️ Maniobra', "max": 20}
                 ],
                 "splitArea": { "areaStyle": { "color": ['#f8fafc', '#f1f5f9'] } }
@@ -172,16 +184,15 @@ if resguardo_seleccionado != "Todos":
                 "type": 'radar',
                 "data": [
                     { "value": [nota_t, nota_f, nota_m], "name": "Desempeño Actual", "itemStyle": {"color": "#002A8D"}, "areaStyle": {"opacity": 0.4} },
-                    { "value": [15, 15, 15], "name": "Umbral Mínimo (Riesgo)", "itemStyle": {"color": "#DC2626"}, "lineStyle": {"type": 'dashed'} },
-                    { "value": [20, 20, 20], "name": "Estándar BCP (Ideal)", "itemStyle": {"color": "#10B981"}, "lineStyle": {"type": 'dotted'} }
+                    { "value": [15, 15, 15], "name": "Umbral Mínimo", "itemStyle": {"color": "#DC2626"}, "lineStyle": {"type": 'dashed'} },
+                    { "value": [20, 20, 20], "name": "Estándar BCP", "itemStyle": {"color": "#10B981"}, "lineStyle": {"type": 'dotted'} }
                 ]
             }]
         }
         st_echarts(options, height="350px")
 
     with d_col2:
-        st.markdown("**📋 Resumen de RRHH y Logística (Visión 360)**")
-        # Extraer datos específicos
+        st.markdown("**📋 Resumen 360**")
         df_emo_ind = filtrar_df(dfs.get('emo', pd.DataFrame()))
         df_vac_ind = filtrar_df(dfs.get('vacaciones', pd.DataFrame()))
         
@@ -189,8 +200,7 @@ if resguardo_seleccionado != "Todos":
         vac_text = df_vac_ind['OBSERVACIÓN'].iloc[0] if not df_vac_ind.empty and 'OBSERVACIÓN' in df_vac_ind.columns else "Sin incidencias"
         
         st.info(f"**🩺 Estado Médico (EMO):** Vence en {dias_emo} días.")
-        st.warning(f"**🌴 Registro de Vacaciones/Ausencias:** {vac_text}")
-        
+        st.warning(f"**🌴 Novedades RRHH:** {vac_text}")
         st.metric(label="PROMEDIO TÁCTICO GLOBAL", value=f"{prom_global_indiv:.2f}/20", delta="- Brecha" if prom_global_indiv < 15 else "+ Apto", delta_color="inverse")
     
     st.markdown("---")
@@ -210,7 +220,6 @@ nota_fisico = obtener_nota_segura('apt_fisica')
 
 etiq_kpi = "Nota" if resguardo_seleccionado != "Todos" else "Prom. Grupal"
 
-# Render de Tarjetas Inteligentes
 k1, k2, k3, k4, k5, k6 = st.columns(6)
 with k1: st.markdown(f'<div class="kpi-card"><div class="kpi-title">Dotación</div><div class="kpi-value">{len(df_emo)}</div><div class="kpi-desc bg-blue">Efectivos</div></div>', unsafe_allow_html=True)
 with k2: st.markdown(f'<div class="kpi-card"><div class="kpi-title">Alerta EMO</div><div class="kpi-value">{"0" if emo_riesgo==0 else emo_riesgo}</div><div class="kpi-desc {"bg-red" if emo_riesgo > 0 else "bg-green"}">Vencimientos</div></div>', unsafe_allow_html=True)
@@ -222,12 +231,10 @@ with k6: st.markdown(f'<div class="kpi-card"><div class="kpi-title">{etiq_kpi} F
 # ==========================================
 # 6. CENTRO DE CONTROL (TABS)
 # ==========================================
-tab1, tab2, tab3, tab4 = st.tabs(["🎯 Panel Táctico & Excepciones", "⚖️ Legal & RRHH (EMO/SUCAMEC/Vacaciones)", "📦 Logística & Equipamiento", "🎓 Capacitaciones"])
+tab1, tab2, tab3, tab4 = st.tabs(["🎯 Panel Táctico", "⚖️ Legal & RRHH", "📦 Logística", "🎓 Capacitaciones"])
 
 with tab1:
-    # EL AG-GRID MASTERPIECE
-    st.markdown("<h4 style='color: #002A8D;'>🔍 Matriz Consolidada de Riesgo Operativo (Ag-Grid Enterprise)</h4>", unsafe_allow_html=True)
-    st.info("💡 Usa el menú de la esquina derecha de la tabla para exportar a Excel/CSV o arrastra las columnas para agrupar.")
+    st.markdown("<h4 style='color: #002A8D;'>🔍 Matriz Consolidada de Riesgo Operativo (Ag-Grid)</h4>", unsafe_allow_html=True)
     
     df_lista = []
     for hoja in ['tiro', 'maniobra', 'apt_fisica']:
@@ -247,24 +254,20 @@ with tab1:
         }).reset_index()
         
         df_panel['PROM. GLOBAL'] = df_panel['PROMEDIO'].round(2)
-        # Filtro: Mostrar todos para que la tabla sea útil gerencialmente, pero resaltar alertas
         df_aggrid = df_panel[['RESGUARDO', 'PROM. GLOBAL', 'OBSERVACIÓN']].copy()
         df_aggrid['ESTADO'] = ['🔴 ALERTA TÁCTICA' if x < 15.0 else '🟢 APTO' for x in df_aggrid['PROM. GLOBAL']]
         
-        # Configuración Pro de Ag-Grid
         gb = GridOptionsBuilder.from_dataframe(df_aggrid)
         gb.configure_pagination(paginationAutoPageSize=True)
-        gb.configure_side_bar() # Activa panel derecho para filtros y exportación CSV
+        gb.configure_side_bar() 
         gb.configure_default_column(groupable=True, value=True, enableRowGroup=True, aggFunc='sum', editable=False, filter=True)
         gb.configure_column("RESGUARDO", width=250, pinned="left")
         gb.configure_column("PROM. GLOBAL", type=["numericColumn"], width=130)
         gb.configure_column("OBSERVACIÓN", width=400)
         
         gridOptions = gb.build()
-        
         AgGrid(df_aggrid, gridOptions=gridOptions, enable_enterprise_modules=False, theme="balham", height=350, fit_columns_on_grid_load=True)
 
-    # Gráficos de Barras Comparativos
     st.markdown("---")
     c1, c2, c3 = st.columns(3)
     def plot_eval(df, title):
@@ -286,7 +289,7 @@ with tab1:
         fig = px.bar(df_plot, x='RESGUARDO', y='PROMEDIO', text_auto='.2f', title=title, 
                      color='ESTADO', color_discrete_map={'Riesgo (<15.0)': '#d9534f', 'Óptimo': '#002A8D', 'Benchmark': '#94A3B8'})
         fig.add_hline(y=15, line_dash="dash", line_color="#D97706")
-        fig.update_traces(textangle=0, textposition='outside')
+        fig.update_traces(textangle=0, textposition='outside') # <-- BLOQUEO VERTICAL DE NÚMEROS APLICADO
         fig.update_layout(showlegend=False, yaxis_range=[0, 24])
         return fig
 
@@ -318,13 +321,11 @@ with tab2:
         if 'vacaciones' in dfs and not dfs['vacaciones'].empty:
             st.markdown("**🌴 Registro de Vacaciones (RRHH)**")
             df_vac = filtrar_df(dfs['vacaciones'])
-            # Selección segura: Lee las columnas solo si existen en el Google Sheet
             cols_seguras = [c for c in ['RESGUARDO', 'OBSERVACIÓN', 'OBS'] if c in df_vac.columns]
             
             if cols_seguras:
                 st.dataframe(df_vac[cols_seguras], use_container_width=True, hide_index=True)
             else:
-                # Si las columnas tienen nombres completamente distintos, muestra toda la tabla por seguridad
                 st.dataframe(df_vac, use_container_width=True, hide_index=True)
 
 with tab3:
@@ -336,7 +337,6 @@ with tab3:
         if resguardo_seleccionado != "Todos" and resguardo_seleccionado in df_eq.columns:
             st.dataframe(df_eq[['CANTIDAD', 'EQUIPO', resguardo_seleccionado]], hide_index=True, use_container_width=True)
         else:
-            # Transformación a tabla vertical tipo Base de Datos
             df_eq_vertical = df_eq.melt(id_vars=['EQUIPO', 'CANTIDAD'], value_vars=cols_resguardos, var_name='RESGUARDO', value_name='ASIGNADO')
             df_eq_vertical = df_eq_vertical[pd.to_numeric(df_eq_vertical['ASIGNADO'], errors='coerce').fillna(0) > 0]
             st.dataframe(df_eq_vertical[['RESGUARDO', 'CANTIDAD', 'EQUIPO']], hide_index=True, use_container_width=True)
@@ -352,4 +352,5 @@ with tab4:
         avance['% Cumplido'] = avance['% Cumplido'].apply(lambda x: 100 if x > 100 else x)
         fig_capa = px.bar(avance, x='RESGUARDO', y='% Cumplido', title="Avance de Capacitaciones (%)", color='% Cumplido', color_continuous_scale=['#FF7A00', '#002A8D'])
         fig_capa.update_layout(yaxis_range=[0, 115])
+        fig_capa.update_traces(textangle=0, textposition='outside') # <-- SEGUNDO BLOQUEO DE NÚMEROS APLICADO
         st.plotly_chart(fig_capa, use_container_width=True)
