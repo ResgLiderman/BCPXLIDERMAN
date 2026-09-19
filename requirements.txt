@@ -1,9 +1,8 @@
 streamlit
 pandas
-openpyxl
 plotly
 streamlit-aggrid
 streamlit-echarts
-streamlit-extras
 streamlit-lottie
 requests
+supabase
