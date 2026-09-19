@@ -71,52 +71,44 @@ def init_supabase() -> Client:
 
 supabase = init_supabase()
 
-@st.cache_data(ttl=60) # TTL reducido a 60s preparándonos para el Tiempo Real
+@st.cache_data(ttl=1) # <-- TTL a 1 segundo: MATA LA CACHÉ para ver los datos en tiempo real
 def cargar_datos():
-    # MODO HÍBRIDO: Mientras pasamos las tablas a Supabase, mantenemos Sheets
-    # como motor de respaldo para que la app no se caiga.
     sheet_id = "1Cs3cV-NdVC6u1sDVhWEKpoP2OvDldzpWVIvx8bf-OSc"
     base_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid="
     
+    # 1. ELIMINAMOS EQUIPAMIENTO DE GOOGLE SHEETS
     gids = {
-        'equipamiento': '0', 'doc_sucamec': '2135347375', 'lic_sucamec': '371955966',
+        'doc_sucamec': '2135347375', 'lic_sucamec': '371955966',
         'capa': '1864610226', 'tiro': '1062108520', 'maniobra': '495125468',
         'apt_fisica': '2042184423', 'emo': '516174160', 'vacaciones': '1808970374'
     }
     
     dfs = {}
+    
+    # 2. EXTRACCIÓN PURA Y DIRECTA DE SUPABASE
+    try:
+        respuesta = supabase.table('equipamiento').select('*').execute()
+        df_supa = pd.DataFrame(respuesta.data)
+        if not df_supa.empty:
+            df_supa = df_supa.rename(columns={'resguardo': 'RESGUARDO', 'equipo': 'EQUIPO', 'cantidad': 'CANTIDAD'})
+        else:
+            df_supa = pd.DataFrame(columns=['RESGUARDO', 'EQUIPO', 'CANTIDAD'])
+        dfs['equipamiento'] = df_supa
+    except Exception as e:
+        dfs['equipamiento'] = pd.DataFrame(columns=['RESGUARDO', 'EQUIPO', 'CANTIDAD'])
+
+    # 3. EXTRACCIÓN DEL RESTO EN SHEETS
     for nombre, gid in gids.items():
         try:
-            # 1. INTERCEPTACIÓN SUPABASE: Si la tabla es 'equipamiento', leemos de la bóveda
-            if nombre == 'equipamiento':
-                respuesta = supabase.table('equipamiento').select('*').execute()
-                df = pd.DataFrame(respuesta.data)
-                
-                if not df.empty:
-                    # Mapeo explícito para garantizar que el renderizado encuentre las columnas
-                    df = df.rename(columns={
-                        'resguardo': 'RESGUARDO',
-                        'equipo': 'EQUIPO',
-                        'cantidad': 'CANTIDAD'
-                    })
-                else:
-                    # Si Supabase está vacía, activamos el Fallback a Google Sheets
-                    df = pd.read_csv(base_url + gid, header=1)
-            else:
-                # Las demás tablas siguen leyendo de Google Sheets por ahora
-                df = pd.read_csv(base_url + gid, header=1)
-                
+            df = pd.read_csv(base_url + gid, header=1)
             df.columns = df.columns.str.strip()
             if 'RESGUARDO' in df.columns:
                 df['RESGUARDO'] = df['RESGUARDO'].astype(str).str.strip()
             dfs[nombre] = df
-            
         except Exception as e:
             dfs[nombre] = pd.DataFrame()
             
     hoy = pd.Timestamp.today()
-
-    # Motor de Fechas (EMO, SUCAMEC, VACACIONES)
     fechas_config = [
         ('emo', 'F. VENC. DE EMO', 'DÍAS RESTANTES'), 
         ('doc_sucamec', 'F. VENCIMIENTO CARNÉ SUCAMEC', 'DÍAS RESTANTES SUCAMEC'),
@@ -127,7 +119,6 @@ def cargar_datos():
             dfs[hoja][col_fecha] = pd.to_datetime(dfs[hoja][col_fecha], format='%d/%m/%Y', errors='coerce')
             dfs[hoja][col_nueva] = (dfs[hoja][col_fecha] - hoy).dt.days
 
-    # Aplanado Matricial Capacitaciones
     if 'capa' in dfs and not dfs['capa'].empty:
         col_id = dfs['capa'].columns[0]
         cols_res = [c for c in dfs['capa'].columns if c not in [col_id, 'Trimestre', 'TOTAL CURSOS COMPLETADOS'] and not c.startswith('Unnamed')]
@@ -347,26 +338,22 @@ with tab2:
                 st.dataframe(df_vac, use_container_width=True, hide_index=True)
 
 with tab3:
-    st.markdown("**📦 Módulo Logístico y Control de Activos**")
+    st.markdown("**📦 Módulo Logístico y Control de Activos (Supabase)**")
+    
     if 'equipamiento' in dfs and not dfs['equipamiento'].empty:
         df_eq = dfs['equipamiento'].copy().dropna(subset=['EQUIPO'])
         
-        # MOTOR INTELIGENTE: Detectar si es Base de Datos (Supabase) o Matriz (Google Sheets)
-        if 'RESGUARDO' in df_eq.columns:
-            # LÓGICA NUEVA: Formato Base de Datos (Vertical)
-            if resguardo_seleccionado != "Todos":
-                df_eq = df_eq[df_eq['RESGUARDO'] == resguardo_seleccionado]
-            st.dataframe(df_eq[['RESGUARDO', 'CANTIDAD', 'EQUIPO']], hide_index=True, use_container_width=True)
+        # Filtro de panel izquierdo
+        if resguardo_seleccionado != "Todos":
+            df_eq = df_eq[df_eq['RESGUARDO'] == resguardo_seleccionado]
             
+        if not df_eq.empty:
+            st.dataframe(df_eq[['RESGUARDO', 'CANTIDAD', 'EQUIPO']], hide_index=True, use_container_width=True)
         else:
-            # LÓGICA ANTIGUA: Formato Google Sheets (Horizontal con melt)
-            cols_resguardos = [c for c in df_eq.columns if ',' in str(c) and c != coordinador]
-            if resguardo_seleccionado != "Todos" and resguardo_seleccionado in df_eq.columns:
-                st.dataframe(df_eq[['CANTIDAD', 'EQUIPO', resguardo_seleccionado]], hide_index=True, use_container_width=True)
-            else:
-                df_eq_vertical = df_eq.melt(id_vars=['EQUIPO', 'CANTIDAD'], value_vars=cols_resguardos, var_name='RESGUARDO', value_name='ASIGNADO')
-                df_eq_vertical = df_eq_vertical[pd.to_numeric(df_eq_vertical['ASIGNADO'], errors='coerce').fillna(0) > 0]
-                st.dataframe(df_eq_vertical[['RESGUARDO', 'CANTIDAD', 'EQUIPO']], hide_index=True, use_container_width=True)
+            st.info("Este resguardo no tiene armamento asignado.")
+    else:
+        st.error("Bóveda de armería vacía o conexión interrumpida.")
+        
 with tab4:
     if 'capa_flat' in dfs and not dfs['capa_flat'].empty:
         df_capa = dfs['capa_flat'].copy()
