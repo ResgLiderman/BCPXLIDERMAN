@@ -86,7 +86,6 @@ def cargar_datos():
     
     dfs = {}
     for nombre, gid in gids.items():
-        for nombre, gid in gids.items():
         try:
             # 1. INTERCEPTACIÓN SUPABASE: Si la tabla es 'equipamiento', leemos de la bóveda
             if nombre == 'equipamiento':
