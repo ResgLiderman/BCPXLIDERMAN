@@ -350,15 +350,23 @@ with tab3:
     st.markdown("**📦 Módulo Logístico y Control de Activos**")
     if 'equipamiento' in dfs and not dfs['equipamiento'].empty:
         df_eq = dfs['equipamiento'].copy().dropna(subset=['EQUIPO'])
-        cols_resguardos = [c for c in df_eq.columns if ',' in str(c) and c != coordinador]
         
-        if resguardo_seleccionado != "Todos" and resguardo_seleccionado in df_eq.columns:
-            st.dataframe(df_eq[['CANTIDAD', 'EQUIPO', resguardo_seleccionado]], hide_index=True, use_container_width=True)
+        # MOTOR INTELIGENTE: Detectar si es Base de Datos (Supabase) o Matriz (Google Sheets)
+        if 'RESGUARDO' in df_eq.columns:
+            # LÓGICA NUEVA: Formato Base de Datos (Vertical)
+            if resguardo_seleccionado != "Todos":
+                df_eq = df_eq[df_eq['RESGUARDO'] == resguardo_seleccionado]
+            st.dataframe(df_eq[['RESGUARDO', 'CANTIDAD', 'EQUIPO']], hide_index=True, use_container_width=True)
+            
         else:
-            df_eq_vertical = df_eq.melt(id_vars=['EQUIPO', 'CANTIDAD'], value_vars=cols_resguardos, var_name='RESGUARDO', value_name='ASIGNADO')
-            df_eq_vertical = df_eq_vertical[pd.to_numeric(df_eq_vertical['ASIGNADO'], errors='coerce').fillna(0) > 0]
-            st.dataframe(df_eq_vertical[['RESGUARDO', 'CANTIDAD', 'EQUIPO']], hide_index=True, use_container_width=True)
-
+            # LÓGICA ANTIGUA: Formato Google Sheets (Horizontal con melt)
+            cols_resguardos = [c for c in df_eq.columns if ',' in str(c) and c != coordinador]
+            if resguardo_seleccionado != "Todos" and resguardo_seleccionado in df_eq.columns:
+                st.dataframe(df_eq[['CANTIDAD', 'EQUIPO', resguardo_seleccionado]], hide_index=True, use_container_width=True)
+            else:
+                df_eq_vertical = df_eq.melt(id_vars=['EQUIPO', 'CANTIDAD'], value_vars=cols_resguardos, var_name='RESGUARDO', value_name='ASIGNADO')
+                df_eq_vertical = df_eq_vertical[pd.to_numeric(df_eq_vertical['ASIGNADO'], errors='coerce').fillna(0) > 0]
+                st.dataframe(df_eq_vertical[['RESGUARDO', 'CANTIDAD', 'EQUIPO']], hide_index=True, use_container_width=True)
 with tab4:
     if 'capa_flat' in dfs and not dfs['capa_flat'].empty:
         df_capa = dfs['capa_flat'].copy()
