@@ -1,9 +1,17 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import requests
 from st_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode, GridUpdateMode
 from streamlit_echarts import st_echarts
 from datetime import datetime
+from streamlit_lottie import st_lottie
+
+def cargar_animacion_hacker(url: str):
+    r = requests.get(url)
+    if r.status_code != 200:
+        return None
+    return r.json()
 
 # ==========================================
 # 1. CONFIGURACIÓN DEL CENTRO DE MANDO (PALANTIR STYLE)
@@ -103,7 +111,16 @@ lista_resguardos = dfs['emo']['RESGUARDO'].dropna().unique().tolist() if 'emo' i
 st.sidebar.markdown('<div style="text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/0/0d/Logo-bcp-vector.svg" width="180"></div>', unsafe_allow_html=True)
 st.sidebar.markdown("---")
 st.sidebar.title("⚙️ Filtro Operativo")
-resguardo_seleccionado = st.sidebar.selectbox("Fijar Objetivo (Resguardo):", ["Todos"] + lista_resguardos)
+resguardo_seleccionado = st.sidebar.radio("Fijar Objetivo (Resguardo):", ["Todos"] + lista_resguardos)
+
+# Descargamos un radar de seguridad en formato JSON
+radar_url = "https://lottie.host/7c7328bf-4277-4011-a54c-1123f13fb46e/a70i3dXVGk.json"
+animacion_radar = cargar_animacion_hacker(radar_url)
+
+# Lo inyectamos en la barra lateral
+if animacion_radar:
+    with st.sidebar:
+        st_lottie(animacion_radar, height=150, key="radar_seguridad")
 
 def filtrar_df(df, col='RESGUARDO'):
     if resguardo_seleccionado == "Todos":
@@ -269,6 +286,7 @@ with tab1:
         fig = px.bar(df_plot, x='RESGUARDO', y='PROMEDIO', text_auto='.2f', title=title, 
                      color='ESTADO', color_discrete_map={'Riesgo (<15.0)': '#d9534f', 'Óptimo': '#002A8D', 'Benchmark': '#94A3B8'})
         fig.add_hline(y=15, line_dash="dash", line_color="#D97706")
+        fig.update_traces(textangle=0, textposition='outside')
         fig.update_layout(showlegend=False, yaxis_range=[0, 24])
         return fig
 
@@ -313,12 +331,15 @@ with tab3:
     st.markdown("**📦 Módulo Logístico y Control de Activos**")
     if 'equipamiento' in dfs and not dfs['equipamiento'].empty:
         df_eq = dfs['equipamiento'].copy().dropna(subset=['EQUIPO'])
-        cols_resguardos = [c for c in df_eq.columns if ',' in str(c)]
+        cols_resguardos = [c for c in df_eq.columns if ',' in str(c) and c != coordinador]
+        
         if resguardo_seleccionado != "Todos" and resguardo_seleccionado in df_eq.columns:
             st.dataframe(df_eq[['CANTIDAD', 'EQUIPO', resguardo_seleccionado]], hide_index=True, use_container_width=True)
         else:
-            cols_finales = ['CANTIDAD', 'EQUIPO'] + [c for c in cols_resguardos if c != coordinador]
-            st.dataframe(df_eq[[c for c in cols_finales if c in df_eq.columns]], hide_index=True, use_container_width=True)
+            # Transformación a tabla vertical tipo Base de Datos
+            df_eq_vertical = df_eq.melt(id_vars=['EQUIPO', 'CANTIDAD'], value_vars=cols_resguardos, var_name='RESGUARDO', value_name='ASIGNADO')
+            df_eq_vertical = df_eq_vertical[pd.to_numeric(df_eq_vertical['ASIGNADO'], errors='coerce').fillna(0) > 0]
+            st.dataframe(df_eq_vertical[['RESGUARDO', 'CANTIDAD', 'EQUIPO']], hide_index=True, use_container_width=True)
 
 with tab4:
     if 'capa_flat' in dfs and not dfs['capa_flat'].empty:
