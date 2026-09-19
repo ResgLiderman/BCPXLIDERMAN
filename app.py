@@ -86,13 +86,28 @@ def cargar_datos():
     
     dfs = {}
     for nombre, gid in gids.items():
+        for nombre, gid in gids.items():
         try:
-            # En el futuro, reemplazaremos estas líneas por consultas directas a supabase.table(nombre).select("*")
-            df = pd.read_csv(base_url + gid, header=1)
+            # 1. INTERCEPTACIÓN SUPABASE: Si la tabla es 'equipamiento', leemos de la bóveda
+            if nombre == 'equipamiento':
+                respuesta = supabase.table('equipamiento').select('*').execute()
+                df = pd.DataFrame(respuesta.data)
+                
+                # Si Supabase tiene datos, estandarizamos las columnas a MAYÚSCULAS
+                if not df.empty:
+                    df.columns = df.columns.str.upper()
+                else:
+                    # Si Supabase está vacía, activamos el Fallback a Google Sheets
+                    df = pd.read_csv(base_url + gid, header=1)
+            else:
+                # Las demás tablas siguen leyendo de Google Sheets por ahora
+                df = pd.read_csv(base_url + gid, header=1)
+                
             df.columns = df.columns.str.strip()
             if 'RESGUARDO' in df.columns:
                 df['RESGUARDO'] = df['RESGUARDO'].astype(str).str.strip()
             dfs[nombre] = df
+            
         except Exception as e:
             dfs[nombre] = pd.DataFrame()
             
