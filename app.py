@@ -92,9 +92,13 @@ def cargar_datos():
                 respuesta = supabase.table('equipamiento').select('*').execute()
                 df = pd.DataFrame(respuesta.data)
                 
-                # Si Supabase tiene datos, estandarizamos las columnas a MAYÚSCULAS
                 if not df.empty:
-                    df.columns = df.columns.str.upper()
+                    # Mapeo explícito para garantizar que el renderizado encuentre las columnas
+                    df = df.rename(columns={
+                        'resguardo': 'RESGUARDO',
+                        'equipo': 'EQUIPO',
+                        'cantidad': 'CANTIDAD'
+                    })
                 else:
                     # Si Supabase está vacía, activamos el Fallback a Google Sheets
                     df = pd.read_csv(base_url + gid, header=1)
