@@ -450,7 +450,7 @@ with tab3:
 
                 with holo1:
                     st.markdown("<h3 style='text-align: center; color: #10B981; font-weight: 900; letter-spacing: 2px;'>ARMAMENTO</h3>", unsafe_allow_html=True)
-                    components.html(render_2d_capsule("https://pngimg.com/uploads/pistol/pistol_PNG75529.png", total_glock, "#10B981"), height=270)
+                    components.html(render_2d_capsule("https://w7.pngwing.com/pngs/562/235/png-transparent-glock-19-browning-hi-power-9%C3%9719mm-parabellum-glock-ges-m-b-h-others-angle-handgun-airsoft.png, "#10B981"), height=270)
 
                 with holo2:
                     st.markdown("<h3 style='text-align: center; color: #FF7A00; font-weight: 900; letter-spacing: 2px;'>PROTECCIÓN</h3>", unsafe_allow_html=True)
@@ -458,7 +458,7 @@ with tab3:
 
                 with holo3:
                     st.markdown("<h3 style='text-align: center; color: #00E5FF; font-weight: 900; letter-spacing: 2px;'>ACCESORIOS</h3>", unsafe_allow_html=True)
-                    components.html(render_2d_capsule("https://pngimg.com/uploads/briefcase/briefcase_PNG41.png", total_caja, "#00E5FF"), height=270)
+                    components.html(render_2d_capsule("https://w7.pngwing.com/pngs/962/614/png-transparent-tool-pelican-products-military-lid-backpack-swat-car-backpack-lid-metal.png", total_caja, "#00E5FF"), height=270)
 
 
                 st.markdown("<br><br>", unsafe_allow_html=True)
