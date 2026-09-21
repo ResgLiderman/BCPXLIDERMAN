@@ -399,39 +399,67 @@ with tab3:
                     st.plotly_chart(fig, use_container_width=True)
 
                 # ========================================================
-                # INYECCIÓN 3D (ZONA JARVIS) - ENLACES VERIFICADOS Y ACTIVOS
+                # CÁPSULAS HOLOGRÁFICAS (DISEÑO CIRCULAR DINÁMICO)
                 # ========================================================
                 st.markdown("""
-                <div style="margin-top: 40px; margin-bottom: 20px;">
+                <div style="margin-top: 40px; margin-bottom: 30px;">
                     <h3 style="color: #002A8D; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; border-bottom: 2px solid #0F172A; padding-bottom: 10px;">
-                        ⚡ Armería Holográfica 3D (Live Rendering)
+                        ⚡ Armería Holográfica 3D (Cápsulas de Contención)
                     </h3>
-                    <p style="color: #64748B; font-size: 0.9rem;">Interactúa con el mouse (Click + Arrastrar) para inspeccionar el equipo logístico en 360°.</p>
                 </div>
                 """, unsafe_allow_html=True)
                 
+                # Cálculos automáticos desde la base de datos
+                try:
+                    total_glock = int(df_eq[df_eq['EQUIPO'].str.contains('GLOCK', case=False, na=False)]['CANTIDAD'].sum())
+                except:
+                    total_glock = 0
+                
+                try:
+                    total_chaleco = int(df_eq[df_eq['EQUIPO'].str.contains('CHALECO', case=False, na=False)]['CANTIDAD'].sum())
+                except:
+                    total_chaleco = 0
+
                 holo1, holo2 = st.columns(2)
                 
-                # IDs extraídos directamente de la base de datos de Sketchfab (100% Funcionales)
+                # IDs y parámetros limpios
                 glock_id = "57dbcccd1c2d4e7f81662316dfe11e6b"
                 vest_id = "a1974e3f1b8c455d80aeb8abc35975ad"
-                
-                # Parámetros hackers para limpiar la interfaz del 3D y forzar fondo transparente
                 params = "?autostart=1&ui_controls=0&ui_infos=0&ui_inspector=0&ui_stop=0&ui_theme=dark&ui_watermark=0&transparent=1"
                 
                 with holo1:
+                    # Cápsula Circular Verde (Glock)
                     st.markdown(f"""
-                    <div style="background: linear-gradient(145deg, #0F172A, #1E293B); border: 1px solid #10B981; border-radius: 12px; padding: 10px; box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);">
-                        <p style="color: #10B981; font-weight: 800; text-align: center; margin-bottom: 5px; letter-spacing: 3px; font-size: 0.85rem;">GLOCK 19 TÁCTICA</p>
-                        <iframe title="Glock 19" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/{glock_id}/embed{params}" height="320" width="100%"> </iframe>
+                    <div style="width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%); border: 3px solid #10B981; margin: 0 auto; position: relative; display: flex; flex-direction: column; align-items: center; box-shadow: 0 0 30px rgba(16, 185, 129, 0.25); overflow: hidden;">
+                        
+                        <!-- Título Superior -->
+                        <div style="position: absolute; top: 25px; color: #10B981; font-weight: 900; letter-spacing: 3px; font-size: 1.1rem; z-index: 10; text-shadow: 0 0 10px #10B981;">GLOCK 19</div>
+                        
+                        <!-- Ventana de Recorte 3D (Oculta marcas de agua) -->
+                        <div style="position: absolute; top: 60px; width: 100%; height: 200px; overflow: hidden; z-index: 5;">
+                            <iframe src="https://sketchfab.com/models/{glock_id}/embed{params}" style="position: absolute; top: -75px; left: -10%; width: 120%; height: 350px; border: none; pointer-events: auto;" allow="autoplay; fullscreen; xr-spatial-tracking"></iframe>
+                        </div>
+                        
+                        <!-- Contador Dinámico Inferior -->
+                        <div style="position: absolute; bottom: 20px; color: #F8FAFC; font-weight: 900; font-size: 3rem; z-index: 10; font-family: 'Courier New', Courier, monospace; line-height: 1; text-shadow: 0 0 15px rgba(16,185,129,0.8);">{total_glock}</div>
                     </div>
                     """, unsafe_allow_html=True)
                     
                 with holo2:
+                    # Cápsula Circular Naranja (Chaleco)
                     st.markdown(f"""
-                    <div style="background: linear-gradient(145deg, #0F172A, #1E293B); border: 1px solid #FF7A00; border-radius: 12px; padding: 10px; box-shadow: 0 0 20px rgba(255, 122, 0, 0.2);">
-                        <p style="color: #FF7A00; font-weight: 800; text-align: center; margin-bottom: 5px; letter-spacing: 3px; font-size: 0.85rem;">CHALECO DE ASALTO</p>
-                        <iframe title="Tactical Vest" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/{vest_id}/embed{params}" height="320" width="100%"> </iframe>
+                    <div style="width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%); border: 3px solid #FF7A00; margin: 0 auto; position: relative; display: flex; flex-direction: column; align-items: center; box-shadow: 0 0 30px rgba(255, 122, 0, 0.25); overflow: hidden;">
+                        
+                        <!-- Título Superior -->
+                        <div style="position: absolute; top: 25px; color: #FF7A00; font-weight: 900; letter-spacing: 3px; font-size: 1.1rem; z-index: 10; text-shadow: 0 0 10px #FF7A00;">CHALECOS</div>
+                        
+                        <!-- Ventana de Recorte 3D (Oculta marcas de agua) -->
+                        <div style="position: absolute; top: 60px; width: 100%; height: 200px; overflow: hidden; z-index: 5;">
+                            <iframe src="https://sketchfab.com/models/{vest_id}/embed{params}" style="position: absolute; top: -75px; left: -10%; width: 120%; height: 350px; border: none; pointer-events: auto;" allow="autoplay; fullscreen; xr-spatial-tracking"></iframe>
+                        </div>
+                        
+                        <!-- Contador Dinámico Inferior -->
+                        <div style="position: absolute; bottom: 20px; color: #F8FAFC; font-weight: 900; font-size: 3rem; z-index: 10; font-family: 'Courier New', Courier, monospace; line-height: 1; text-shadow: 0 0 15px rgba(255,122,0,0.8);">{total_chaleco}</div>
                     </div>
                     """, unsafe_allow_html=True)
 
