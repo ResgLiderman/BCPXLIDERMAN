@@ -454,7 +454,7 @@ with tab3:
 
                 with holo2:
                     st.markdown("<h3 style='text-align: center; color: #FF7A00; font-weight: 900; letter-spacing: 2px;'>PROTECCIÓN</h3>", unsafe_allow_html=True)
-                    components.html(render_2d_capsule("https://pngimg.com/uploads/bulletproof_vest/bulletproof_vest_PNG44.png", total_chaleco, "#FF7A00"), height=270)
+                    components.html(render_2d_capsule("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWBTRB7szjQBf8Xg50QUUs8tobt9uNpTeQ9kyrD6DYf2NX0laZjkJ7FNo&s=10", total_chaleco, "#FF7A00"), height=270)
 
                 with holo3:
                     st.markdown("<h3 style='text-align: center; color: #00E5FF; font-weight: 900; letter-spacing: 2px;'>ACCESORIOS</h3>", unsafe_allow_html=True)
