@@ -24,31 +24,24 @@ def cargar_animacion_hacker(url: str):
 
 st.markdown("""
 <style>
-/* Oculta la notificación molesta de "Running..." en la esquina superior */
+/* Oculta la notificación molesta de "Running..." */
 [data-testid="stStatusWidget"] {
     visibility: hidden;
     display: none;
 }
-</style>
-""", unsafe_allow_html=True)
 
-st.markdown("""
-<style>
-/* Oculta el menú de despliegue principal de Streamlit (los 3 puntos) */
+/* Oculta el menú de los 3 puntos y elementos innecesarios, PERO MANTIENE EL BOTÓN DE LA BARRA LATERAL */
 #MainMenu {visibility: hidden;}
-
-/* Oculta los botones de la derecha: Fork, GitHub y menú superior */
-header [data-testid="stToolbar"] {visibility: hidden;}
 header .viewerBadge_container__1QSob {visibility: hidden;}
 
-/* Forzar que el botón de expandir la barra lateral (sidebar) siempre sea visible y flotante */
-[data-testid="collapsedControl"] {
-    display: block !important;
+/* Forzar que el botón de expandir la barra lateral aparezca brillante y visible */
+button[kind="header"] {
     visibility: visible !important;
+    display: flex !important;
     z-index: 999999;
 }
 </style>
-""", unsafe_allow_html=True)
+""", unsafe_allow_html=True)}
 
 # ==========================================
 # 1. CONFIGURACIÓN DEL CENTRO DE MANDO (PALANTIR STYLE)
