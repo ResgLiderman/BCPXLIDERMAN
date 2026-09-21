@@ -581,7 +581,19 @@ with tab4:
         avance = df_capa.groupby('RESGUARDO')['VALOR'].sum().reset_index()
         avance['% Cumplido'] = (avance['VALOR'] / 16) * 100
         avance['% Cumplido'] = avance['% Cumplido'].apply(lambda x: 100 if x > 100 else x)
-        fig_capa = px.bar(avance, x='RESGUARDO', y='% Cumplido', title="Avance de Capacitaciones (%)", color='% Cumplido', color_continuous_scale=['#FF7A00', '#002A8D'])
-        fig_capa.update_layout(yaxis_range=[0, 115])
-        fig_capa.update_traces(textangle=0, textposition='outside') # <-- SEGUNDO BLOQUEO DE NÚMEROS APLICADO
-        st.plotly_chart(fig_capa, use_container_width=True)
+        
+        if resguardo_seleccionado == "Todos":
+            fig_capa = px.bar(avance, x='RESGUARDO', y='% Cumplido', title="Avance de Capacitaciones (%)", color='% Cumplido', color_continuous_scale=['#FF7A00', '#002A8D'])
+            fig_capa.update_layout(yaxis_range=[0, 115])
+            fig_capa.update_traces(textangle=0, textposition='outside')
+            st.plotly_chart(fig_capa, use_container_width=True)
+        else:
+            pct_val = float(avance['% Cumplido'].iloc[0]) if not avance.empty else 0.0
+            color_capa = "#10B981" if pct_val >= 100 else "#FF7A00"
+            st.markdown(f"""
+            <div style="background: linear-gradient(145deg, #0F172A, #1E293B); padding: 40px; border-radius: 16px; text-align: center; border: 2px solid {color_capa}; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+                <div style="color: #94A3B8; font-size: 0.85rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 15px;">ESTATUS DE CUMPLIMIENTO DE CAPACITACIONES</div>
+                <div style="color: {color_capa}; font-size: 4.5rem; font-weight: 900; font-family: 'Courier New', Courier, monospace; text-shadow: 0 0 20px {color_capa}60;">{pct_val:.1f}%</div>
+                <p style="color: #F8FAFC; font-size: 1.1rem; font-weight: 600; margin-top: 15px; text-transform: uppercase;">Avance de la malla curricular obligatoria</p>
+            </div>
+            """, unsafe_allow_html=True)
