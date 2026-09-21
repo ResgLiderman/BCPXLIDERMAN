@@ -270,7 +270,9 @@ with tab1:
         
         df_panel['PROM. GLOBAL'] = df_panel['PROMEDIO'].round(2)
         df_aggrid = df_panel[['RESGUARDO', 'PROM. GLOBAL', 'OBSERVACIÓN']].copy()
-        df_aggrid['ESTADO'] = ['🔴 ALERTA TÁCTICA' if x < 15.0 else '🟢 APTO' for x in df_aggrid['PROM. GLOBAL']]
+        
+        # Separamos en texto plano para evitar que los emojis rompan el ordenamiento de AgGrid
+        df_aggrid['ESTADO'] = ['ALERTA TÁCTICA' if x < 15.0 else 'APTO' for x in df_aggrid['PROM. GLOBAL']]
         
         gb = GridOptionsBuilder.from_dataframe(df_aggrid)
         gb.configure_pagination(paginationAutoPageSize=True)
@@ -279,6 +281,7 @@ with tab1:
         gb.configure_column("RESGUARDO", width=250, pinned="left")
         gb.configure_column("PROM. GLOBAL", type=["numericColumn"], width=130)
         gb.configure_column("OBSERVACIÓN", width=400)
+        gb.configure_column("ESTADO", width=150)
         
         gridOptions = gb.build()
         AgGrid(df_aggrid, gridOptions=gridOptions, enable_enterprise_modules=False, theme="balham", height=350, fit_columns_on_grid_load=True)
