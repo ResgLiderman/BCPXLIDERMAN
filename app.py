@@ -338,19 +338,55 @@ with tab2:
                 st.dataframe(df_vac, use_container_width=True, hide_index=True)
 
 with tab3:
-    st.markdown("**📦 Módulo Logístico y Control de Activos (Supabase)**")
+    st.markdown("**📦 Módulo Logístico y Control de Activos (Motor Supabase)**")
     
     if 'equipamiento' in dfs and not dfs['equipamiento'].empty:
         df_eq = dfs['equipamiento'].copy().dropna(subset=['EQUIPO'])
         
-        # Filtro de panel izquierdo
-        if resguardo_seleccionado != "Todos":
-            df_eq = df_eq[df_eq['RESGUARDO'] == resguardo_seleccionado]
-            
-        if not df_eq.empty:
-            st.dataframe(df_eq[['RESGUARDO', 'CANTIDAD', 'EQUIPO']], hide_index=True, use_container_width=True)
+        # MOTOR INTELIGENTE: Detectar Base de Datos
+        if 'RESGUARDO' in df_eq.columns:
+            if resguardo_seleccionado != "Todos":
+                df_eq = df_eq[df_eq['RESGUARDO'] == resguardo_seleccionado]
+                
+            if not df_eq.empty:
+                # 1. TARJETA KPI LOGÍSTICA BCP
+                # Aseguramos que la cantidad sea numérica para poder sumarla
+                df_eq['CANTIDAD'] = pd.to_numeric(df_eq['CANTIDAD'], errors='coerce').fillna(0)
+                total_activos = df_eq['CANTIDAD'].sum()
+                
+                st.markdown(f"""
+                <div style="background: linear-gradient(90deg, #002A8D 0%, #0F172A 100%); padding: 15px 25px; border-radius: 8px; color: white; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #10B981;">
+                    <h4 style="margin:0; color: #F8FAFC; font-weight: 400; font-size: 1.1rem;">
+                        Total de Activos Desplegados: <span style="font-size: 1.6em; font-weight: 800; color: #10B981; margin-left: 10px;">{int(total_activos)}</span> <span style="font-size: 0.9em; color: #94A3B8;">unidades operativas</span>
+                    </h4>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # 2. MATRIZ INTERACTIVA ESTILO BI (Ag-Grid)
+                st.markdown("<p style='color: #64748B; font-size: 0.9rem;'><i>* Arrastra la columna 'RESGUARDO' o 'EQUIPO' al área superior de la tabla para agrupar dinámicamente.</i></p>", unsafe_allow_html=True)
+                
+                gb_eq = GridOptionsBuilder.from_dataframe(df_eq[['RESGUARDO', 'EQUIPO', 'CANTIDAD']])
+                gb_eq.configure_pagination(paginationAutoPageSize=True)
+                gb_eq.configure_default_column(groupable=True, value=True, enableRowGroup=True, filter=True, sortable=True)
+                gb_eq.configure_column("RESGUARDO", width=250, header_name="OPERADOR TÁCTICO")
+                gb_eq.configure_column("EQUIPO", width=200, header_name="TIPO DE ACTIVO")
+                gb_eq.configure_column("CANTIDAD", type=["numericColumn"], width=120, header_name="VOL.")
+                
+                gridOptions_eq = gb_eq.build()
+                AgGrid(df_eq[['RESGUARDO', 'EQUIPO', 'CANTIDAD']], gridOptions=gridOptions_eq, enable_enterprise_modules=False, theme="balham", height=300, fit_columns_on_grid_load=True)
+                
+            else:
+                st.info("💡 Este resguardo no tiene armamento ni equipos asignados en la bóveda actual.")
+                
         else:
-            st.info("Este resguardo no tiene armamento asignado.")
+            # LÓGICA ANTIGUA (Fallback a Google Sheets)
+            cols_resguardos = [c for c in df_eq.columns if ',' in str(c) and c != coordinador]
+            if resguardo_seleccionado != "Todos" and resguardo_seleccionado in df_eq.columns:
+                st.dataframe(df_eq[['CANTIDAD', 'EQUIPO', resguardo_seleccionado]], hide_index=True, use_container_width=True)
+            else:
+                df_eq_vertical = df_eq.melt(id_vars=['EQUIPO', 'CANTIDAD'], value_vars=cols_resguardos, var_name='RESGUARDO', value_name='ASIGNADO')
+                df_eq_vertical = df_eq_vertical[pd.to_numeric(df_eq_vertical['ASIGNADO'], errors='coerce').fillna(0) > 0]
+                st.dataframe(df_eq_vertical[['RESGUARDO', 'CANTIDAD', 'EQUIPO']], hide_index=True, use_container_width=True)
     else:
         st.error("Bóveda de armería vacía o conexión interrumpida.")
         
