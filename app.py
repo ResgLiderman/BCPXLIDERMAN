@@ -375,14 +375,14 @@ with tab3:
                 c1, c2 = st.columns([1, 1.3])
                 
                 with c1:
-                    total_activos = df_eq['CANTIDAD'].sum()
+                    total_resguardos = df_eq['RESGUARDO'].nunique()
                     st.markdown(f"""
                     <div style="background-color: #0F172A; padding: 40px 30px; border-radius: 16px; border-left: 6px solid #FF7A00; box-shadow: 0 10px 25px rgba(0,0,0,0.1); height: 100%;">
                         <h5 style="color: #94A3B8; text-transform: uppercase; letter-spacing: 2px; font-size: 0.9rem; margin-bottom: 20px;">Red Logística Activa</h5>
-                        <h1 style="color: #F8FAFC; font-size: 5rem; margin: 0; line-height: 1;">{int(total_activos)}</h1>
-                        <p style="color: #FF7A00; font-weight: 600; font-size: 1.1rem; margin-top: 10px; text-transform: uppercase;">Unidades Desplegadas</p>
+                        <h1 style="color: #F8FAFC; font-size: 5rem; margin: 0; line-height: 1;">{total_resguardos}</h1>
+                        <p style="color: #FF7A00; font-weight: 600; font-size: 1.1rem; margin-top: 10px; text-transform: uppercase;">Total de Resguardos</p>
                         <hr style="border-color: #334155; margin: 25px 0;">
-                        <p style="color: #CBD5E1; font-size: 0.85rem; line-height: 1.6;">Conexión de alta seguridad. Telemetría actualizándose en tiempo real desde el servidor central.</p>
+                        <p style="color: #CBD5E1; font-size: 0.85rem; line-height: 1.6;">Operadores tácticos activos sincronizados desde el servidor central.</p>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -390,12 +390,12 @@ with tab3:
                     st.markdown("<h4 style='color: #002A8D; text-align: center; font-weight: 800; margin-bottom: -10px;'>Distribución del Arsenal</h4>", unsafe_allow_html=True)
                     df_agrupado = df_eq.groupby('EQUIPO')['CANTIDAD'].sum().reset_index()
                     fig = px.pie(df_agrupado, values='CANTIDAD', names='EQUIPO', hole=0.65,
-                                 color_discrete_sequence=['#002A8D', '#FF7A00', '#10B981', '#0F172A'])
+                                 color_discrete_sequence=['#002A8D', '#FF7A00', '#10B981', '#334155', '#64748B'])
                     fig.update_traces(textposition='outside', textinfo='percent+label',
                                       hovertemplate='<b>%{label}</b><br>Volumen: %{value} unidades<br>Participación: %{percent}',
                                       marker=dict(line=dict(color='#F8FAFC', width=2)))
                     fig.update_layout(margin=dict(t=30, b=20, l=20, r=20), showlegend=False, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                                      annotations=[dict(text=f"Total<br><b style='font-size:24px; color:#002A8D;'>{int(total_activos)}</b>", x=0.5, y=0.5, font_size=14, showarrow=False)])
+                                      annotations=[dict(text=f"Resguardos<br><b style='font-size:20px; color:#002A8D;'>{total_resguardos}</b>", x=0.5, y=0.5, font_size=13, showarrow=False)])
                     st.plotly_chart(fig, use_container_width=True)
 
                 # ========================================================
@@ -409,14 +409,14 @@ with tab3:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Cálculos automáticos desde la base de datos
+                # Cálculos automáticos robustos (ignorando mayúsculas/minúsculas)
                 try:
-                    total_glock = int(df_eq[df_eq['EQUIPO'].str.contains('GLOCK', case=False, na=False)]['CANTIDAD'].sum())
+                    total_glock = int(df_eq[df_eq['EQUIPO'].str.contains('glock', case=False, na=False)]['CANTIDAD'].sum())
                 except:
                     total_glock = 0
                 
                 try:
-                    total_chaleco = int(df_eq[df_eq['EQUIPO'].str.contains('CHALECO', case=False, na=False)]['CANTIDAD'].sum())
+                    total_chaleco = int(df_eq[df_eq['EQUIPO'].str.contains('chaleco', case=False, na=False)]['CANTIDAD'].sum())
                 except:
                     total_chaleco = 0
 
@@ -428,16 +428,12 @@ with tab3:
                 params = "?autostart=1&ui_controls=0&ui_infos=0&ui_inspector=0&ui_stop=0&ui_theme=dark&ui_watermark=0&transparent=1"
                 
                 with holo1:
-                    # Usamos components.html para aislar el renderizado del modelo 3D
                     components.html(f"""
                     <div style="width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%); border: 3px solid #10B981; margin: 0 auto; position: relative; display: flex; flex-direction: column; align-items: center; box-shadow: 0 0 30px rgba(16, 185, 129, 0.25); overflow: hidden; font-family: sans-serif;">
-                        <!-- Título Superior -->
                         <div style="position: absolute; top: 25px; color: #10B981; font-weight: 900; letter-spacing: 3px; font-size: 1.1rem; z-index: 10; text-shadow: 0 0 10px #10B981;">GLOCK 19</div>
-                        <!-- Ventana de Recorte 3D (Oculta marcas de agua) -->
                         <div style="position: absolute; top: 60px; width: 100%; height: 200px; overflow: hidden; z-index: 5;">
                             <iframe src="https://sketchfab.com/models/{glock_id}/embed{params}" style="position: absolute; top: -75px; left: -10%; width: 120%; height: 350px; border: none; pointer-events: auto;" allow="autoplay; fullscreen; xr-spatial-tracking"></iframe>
                         </div>
-                        <!-- Contador Dinámico Inferior -->
                         <div style="position: absolute; bottom: 20px; color: #F8FAFC; font-weight: 900; font-size: 3rem; z-index: 10; font-family: 'Courier New', Courier, monospace; line-height: 1; text-shadow: 0 0 15px rgba(16,185,129,0.8);">{total_glock}</div>
                     </div>
                     """, height=350)
@@ -445,19 +441,15 @@ with tab3:
                 with holo2:
                     components.html(f"""
                     <div style="width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%); border: 3px solid #FF7A00; margin: 0 auto; position: relative; display: flex; flex-direction: column; align-items: center; box-shadow: 0 0 30px rgba(255, 122, 0, 0.25); overflow: hidden; font-family: sans-serif;">
-                        <!-- Título Superior -->
                         <div style="position: absolute; top: 25px; color: #FF7A00; font-weight: 900; letter-spacing: 3px; font-size: 1.1rem; z-index: 10; text-shadow: 0 0 10px #FF7A00;">CHALECOS</div>
-                        <!-- Ventana de Recorte 3D (Oculta marcas de agua) -->
                         <div style="position: absolute; top: 60px; width: 100%; height: 200px; overflow: hidden; z-index: 5;">
                             <iframe src="https://sketchfab.com/models/{vest_id}/embed{params}" style="position: absolute; top: -75px; left: -10%; width: 120%; height: 350px; border: none; pointer-events: auto;" allow="autoplay; fullscreen; xr-spatial-tracking"></iframe>
                         </div>
-                        <!-- Contador Dinámico Inferior -->
                         <div style="position: absolute; bottom: 20px; color: #F8FAFC; font-weight: 900; font-size: 3rem; z-index: 10; font-family: 'Courier New', Courier, monospace; line-height: 1; text-shadow: 0 0 15px rgba(255,122,0,0.8);">{total_chaleco}</div>
                     </div>
                     """, height=350)
 
         else:
-            # Fallback Google Sheets
             cols_resguardos = [c for c in df_eq.columns if ',' in str(c) and c != coordinador]
             if resguardo_seleccionado != "Todos" and resguardo_seleccionado in df_eq.columns:
                 st.dataframe(df_eq[['CANTIDAD', 'EQUIPO', resguardo_seleccionado]], hide_index=True, use_container_width=True)
