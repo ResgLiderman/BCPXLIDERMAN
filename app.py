@@ -2,11 +2,19 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import requests
+import base64
 from st_aggrid import AgGrid, GridOptionsBuilder
 from streamlit_echarts import st_echarts
 from datetime import datetime
 from streamlit_lottie import st_lottie
 from supabase import create_client, Client # <-- NUEVA INTEGRACIÓN NÚCLEO
+
+def cargar_img_local(ruta):
+    try:
+        with open(ruta, "rb") as f:
+            return f"data:image/png;base64,{base64.b64encode(f.read()).decode()}"
+    except:
+        return ""
 
 def cargar_animacion_hacker(url: str):
     r = requests.get(url)
@@ -450,15 +458,16 @@ with tab3:
 
                 with holo1:
                     st.markdown("<h3 style='text-align: center; color: #10B981; font-weight: 900; letter-spacing: 2px;'>ARMAMENTO</h3>", unsafe_allow_html=True)
-                    components.html(render_2d_capsule("https://w7.pngwing.com/pngs/562/235/png-transparent-glock-19-browning-hi-power-9%C3%9719mm-parabellum-glock-ges-m-b-h-others-angle-handgun-airsoft.png", total_glock, "#10B981"), height=270)
-
+                    # Llama a tu imagen guardada localmente
+                    components.html(render_2d_capsule(cargar_img_local("glock_limpia.png"), total_glock, "#10B981"), height=270)
                 with holo2:
                     st.markdown("<h3 style='text-align: center; color: #FF7A00; font-weight: 900; letter-spacing: 2px;'>PROTECCIÓN</h3>", unsafe_allow_html=True)
-                    components.html(render_2d_capsule("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWBTRB7szjQBf8Xg50QUUs8tobt9uNpTeQ9kyrD6DYf2NX0laZjkJ7FNo&s=10", total_chaleco, "#FF7A00"), height=270)
+                    components.html(render_2d_capsule("https://pngimg.com/uploads/bulletproof_vest/bulletproof_vest_PNG44.png", total_chaleco, "#FF7A00"), height=270)
 
                 with holo3:
                     st.markdown("<h3 style='text-align: center; color: #00E5FF; font-weight: 900; letter-spacing: 2px;'>ACCESORIOS</h3>", unsafe_allow_html=True)
-                    components.html(render_2d_capsule("https://w7.pngwing.com/pngs/962/614/png-transparent-tool-pelican-products-military-lid-backpack-swat-car-backpack-lid-metal.png", total_caja, "#00E5FF"), height=270)
+                    # Llama a tu imagen guardada localmente
+                    components.html(render_2d_capsule(cargar_img_local("maletin_limpio.png"), total_caja, "#00E5FF"), height=270)
                     
                 st.markdown("<br><br>", unsafe_allow_html=True)
 
