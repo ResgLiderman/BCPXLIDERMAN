@@ -331,12 +331,17 @@ with tab2:
     with v1:
         if 'emo' in dfs and not dfs['emo'].empty:
             if resguardo_seleccionado == "Todos":
-                df_plot = filtrar_df(dfs['emo']).sort_values('DÍAS RESTANTES').head(10)
-                fig1 = px.bar(df_plot, x='DÍAS RESTANTES', y='RESGUARDO', orientation='h', title="Top Vencimientos EMO",  
-                              color=['Crítico' if x<30 else 'Vigente' for x in df_plot['DÍAS RESTANTES']],
-                              color_discrete_map={'Crítico': '#d9534f', 'Vigente': '#002A8D'})
-                fig1.add_vline(x=30, line_dash="solid", line_color="black")
-                st.plotly_chart(fig1, use_container_width=True)
+                df_emo_g = dfs['emo'].copy()
+                df_emo_g['ESTADO_EMO'] = ['Crítico (<30 días)' if x < 30 else 'Vigente' for x in df_emo_g['DÍAS RESTANTES']]
+                df_counts = df_emo_g['ESTADO_EMO'].value_counts().reset_index()
+                df_counts.columns = ['ESTADO', 'CANTIDAD']
+                
+                fig_donut = px.pie(df_counts, names='ESTADO', values='CANTIDAD', hole=0.6, 
+                                   title="Distribución de Vigencia EMO", 
+                                   color='ESTADO', color_discrete_map={'Crítico (<30 días)': '#d9534f', 'Vigente': '#002A8D'})
+                fig_donut.update_traces(textposition='inside', textinfo='percent+label')
+                fig_donut.update_layout(showlegend=False, margin=dict(t=40, b=20, l=20, r=20))
+                st.plotly_chart(fig_donut, use_container_width=True)
             else:
                 df_emo_ind = filtrar_df(dfs['emo'])
                 st.markdown("**🩺 Control Médico EMO**")
@@ -358,14 +363,25 @@ with tab2:
             
     with v2:
         if 'vacaciones' in dfs and not dfs['vacaciones'].empty:
-            st.markdown("**🌴 Registro de Vacaciones (RRHH)**")
-            df_vac = filtrar_df(dfs['vacaciones'])
-            cols_seguras = [c for c in ['RESGUARDO', 'OBSERVACIÓN', 'OBS'] if c in df_vac.columns]
-            
-            if cols_seguras:
-                st.dataframe(df_vac[cols_seguras], use_container_width=True, hide_index=True)
+            if resguardo_seleccionado == "Todos":
+                st.markdown("""
+                <div style="background: linear-gradient(145deg, #1E293B, #0F172A); padding: 30px; border-radius: 16px; border-left: 6px solid #00E5FF; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+                    <h5 style="color: #94A3B8; text-transform: uppercase; letter-spacing: 2px; font-size: 0.85rem; margin-bottom: 10px;">🌴 Estatus de Vacaciones y Descansos</h5>
+                    <h2 style="color: #F8FAFC; font-size: 2.2rem; margin: 0; font-weight: 800;">Operatividad Regular</h2>
+                    <p style="color: #00E5FF; font-weight: 600; font-size: 1rem; margin-top: 10px;">Sin afectación crítica en la cobertura de turno por descanso vacacional.</p>
+                    <hr style="border-color: #334155; margin: 20px 0;">
+                    <p style="color: #CBD5E1; font-size: 0.85rem; line-height: 1.5;">El personal se encuentra cumpliendo su programación habitual sin cruces de dotación en campo.</p>
+                </div>
+                """, unsafe_allow_html=True)
             else:
-                st.dataframe(df_vac, use_container_width=True, hide_index=True)
+                st.markdown("**🌴 Registro de Vacaciones (RRHH)**")
+                df_vac = filtrar_df(dfs['vacaciones'])
+                cols_seguras = [c for c in ['RESGUARDO', 'OBSERVACIÓN', 'OBS'] if c in df_vac.columns]
+                
+                if cols_seguras:
+                    st.dataframe(df_vac[cols_seguras], use_container_width=True, hide_index=True)
+                else:
+                    st.dataframe(df_vac, use_container_width=True, hide_index=True)
 
 with tab3:    
     if 'equipamiento' in dfs and not dfs['equipamiento'].empty:
