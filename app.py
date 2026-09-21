@@ -399,7 +399,7 @@ with tab3:
                     st.plotly_chart(fig, use_container_width=True)
 
                 # ========================================================
-                # CÁPSULAS HOLOGRÁFICAS (DISEÑO CIRCULAR DINÁMICO)
+                # CÁPSULAS HOLOGRÁFICAS (RENDERIZADO HTML PURO AISLADO)
                 # ========================================================
                 st.markdown("""
                 <div style="margin-top: 40px; margin-bottom: 30px;">
@@ -420,48 +420,41 @@ with tab3:
                 except:
                     total_chaleco = 0
 
+                import streamlit.components.v1 as components
                 holo1, holo2 = st.columns(2)
                 
-                # IDs y parámetros limpios
                 glock_id = "57dbcccd1c2d4e7f81662316dfe11e6b"
                 vest_id = "a1974e3f1b8c455d80aeb8abc35975ad"
                 params = "?autostart=1&ui_controls=0&ui_infos=0&ui_inspector=0&ui_stop=0&ui_theme=dark&ui_watermark=0&transparent=1"
                 
                 with holo1:
-                    # Cápsula Circular Verde (Glock)
-                    st.markdown(f"""
-                    <div style="width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%); border: 3px solid #10B981; margin: 0 auto; position: relative; display: flex; flex-direction: column; align-items: center; box-shadow: 0 0 30px rgba(16, 185, 129, 0.25); overflow: hidden;">
-                        
+                    # Usamos components.html para aislar el renderizado del modelo 3D
+                    components.html(f"""
+                    <div style="width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%); border: 3px solid #10B981; margin: 0 auto; position: relative; display: flex; flex-direction: column; align-items: center; box-shadow: 0 0 30px rgba(16, 185, 129, 0.25); overflow: hidden; font-family: sans-serif;">
                         <!-- Título Superior -->
                         <div style="position: absolute; top: 25px; color: #10B981; font-weight: 900; letter-spacing: 3px; font-size: 1.1rem; z-index: 10; text-shadow: 0 0 10px #10B981;">GLOCK 19</div>
-                        
                         <!-- Ventana de Recorte 3D (Oculta marcas de agua) -->
                         <div style="position: absolute; top: 60px; width: 100%; height: 200px; overflow: hidden; z-index: 5;">
                             <iframe src="https://sketchfab.com/models/{glock_id}/embed{params}" style="position: absolute; top: -75px; left: -10%; width: 120%; height: 350px; border: none; pointer-events: auto;" allow="autoplay; fullscreen; xr-spatial-tracking"></iframe>
                         </div>
-                        
                         <!-- Contador Dinámico Inferior -->
                         <div style="position: absolute; bottom: 20px; color: #F8FAFC; font-weight: 900; font-size: 3rem; z-index: 10; font-family: 'Courier New', Courier, monospace; line-height: 1; text-shadow: 0 0 15px rgba(16,185,129,0.8);">{total_glock}</div>
                     </div>
-                    """, unsafe_allow_html=True)
+                    """, height=350)
                     
                 with holo2:
-                    # Cápsula Circular Naranja (Chaleco)
-                    st.markdown(f"""
-                    <div style="width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%); border: 3px solid #FF7A00; margin: 0 auto; position: relative; display: flex; flex-direction: column; align-items: center; box-shadow: 0 0 30px rgba(255, 122, 0, 0.25); overflow: hidden;">
-                        
+                    components.html(f"""
+                    <div style="width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%); border: 3px solid #FF7A00; margin: 0 auto; position: relative; display: flex; flex-direction: column; align-items: center; box-shadow: 0 0 30px rgba(255, 122, 0, 0.25); overflow: hidden; font-family: sans-serif;">
                         <!-- Título Superior -->
                         <div style="position: absolute; top: 25px; color: #FF7A00; font-weight: 900; letter-spacing: 3px; font-size: 1.1rem; z-index: 10; text-shadow: 0 0 10px #FF7A00;">CHALECOS</div>
-                        
                         <!-- Ventana de Recorte 3D (Oculta marcas de agua) -->
                         <div style="position: absolute; top: 60px; width: 100%; height: 200px; overflow: hidden; z-index: 5;">
                             <iframe src="https://sketchfab.com/models/{vest_id}/embed{params}" style="position: absolute; top: -75px; left: -10%; width: 120%; height: 350px; border: none; pointer-events: auto;" allow="autoplay; fullscreen; xr-spatial-tracking"></iframe>
                         </div>
-                        
                         <!-- Contador Dinámico Inferior -->
                         <div style="position: absolute; bottom: 20px; color: #F8FAFC; font-weight: 900; font-size: 3rem; z-index: 10; font-family: 'Courier New', Courier, monospace; line-height: 1; text-shadow: 0 0 15px rgba(255,122,0,0.8);">{total_chaleco}</div>
                     </div>
-                    """, unsafe_allow_html=True)
+                    """, height=350)
 
         else:
             # Fallback Google Sheets
