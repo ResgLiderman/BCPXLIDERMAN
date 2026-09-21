@@ -341,7 +341,6 @@ with tab3:
     if 'equipamiento' in dfs and not dfs['equipamiento'].empty:
         df_eq = dfs['equipamiento'].copy().dropna(subset=['EQUIPO'])
         
-        # MOTOR INTELIGENTE: Detectar Base de Datos
         if 'RESGUARDO' in df_eq.columns:
             df_eq['CANTIDAD'] = pd.to_numeric(df_eq['CANTIDAD'], errors='coerce').fillna(0)
             
@@ -370,7 +369,7 @@ with tab3:
                     
             else:
                 # ==========================================
-                # MODO 2: VISIÓN GLOBAL BI + GRÁFICO INTERACTIVO
+                # MODO 2: VISIÓN GLOBAL BI + GRÁFICO (Temporal)
                 # ==========================================
                 c1, c2 = st.columns([1, 1.3])
                 
@@ -399,55 +398,85 @@ with tab3:
                     st.plotly_chart(fig, use_container_width=True)
 
                 # ========================================================
-                # CÁPSULAS HOLOGRÁFICAS (RENDERIZADO HTML PURO AISLADO)
+                # CÁPSULAS HOLOGRÁFICAS (AGRUPACIÓN TÁCTICA EXPANSIVA)
                 # ========================================================
                 st.markdown("""
                 <div style="margin-top: 40px; margin-bottom: 30px;">
                     <h3 style="color: #002A8D; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; border-bottom: 2px solid #0F172A; padding-bottom: 10px;">
-                        ⚡ Armería Holográfica 3D (Cápsulas de Contención)
+                        ⚡ Inventario Táctico 3D (Desglose Interactivo)
                     </h3>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Cálculos automáticos robustos
-                try:
-                    total_glock = int(df_eq[df_eq['EQUIPO'].str.contains('glock', case=False, na=False)]['CANTIDAD'].sum())
-                except:
-                    total_glock = 0
-                
-                try:
-                    total_chaleco = int(df_eq[df_eq['EQUIPO'].str.contains('chaleco', case=False, na=False)]['CANTIDAD'].sum())
-                except:
-                    total_chaleco = 0
+                # Cálculos exactos y limpios desde la base de datos (Adiós al bug del 16)
+                total_glock = int(df_eq[df_eq['EQUIPO'] == 'Glock 19']['CANTIDAD'].sum())
+                total_cacerinas = int(df_eq[df_eq['EQUIPO'] == 'Cacerinas']['CANTIDAD'].sum())
+                total_cartuchos = int(df_eq[df_eq['EQUIPO'] == 'Cartuchos .38']['CANTIDAD'].sum())
+
+                total_chaleco = int(df_eq[df_eq['EQUIPO'] == 'Chaleco Antibalas']['CANTIDAD'].sum())
+                total_funda = int(df_eq[df_eq['EQUIPO'] == 'Funda de Chaleco']['CANTIDAD'].sum())
+
+                total_celular = int(df_eq[df_eq['EQUIPO'] == 'Teléfono Celular']['CANTIDAD'].sum())
+                total_fotocheck = int(df_eq[df_eq['EQUIPO'] == 'Fotocheck Liderman']['CANTIDAD'].sum())
+                total_caja = int(df_eq[df_eq['EQUIPO'] == 'Caja de Seguridad']['CANTIDAD'].sum())
+                total_cartuchera = int(df_eq[df_eq['EQUIPO'] == 'Cartuchera']['CANTIDAD'].sum())
+                total_porta = int(df_eq[df_eq['EQUIPO'] == 'Porta Cacerinas']['CANTIDAD'].sum())
 
                 import streamlit.components.v1 as components
-                holo1, holo2 = st.columns(2)
+                holo1, holo2, holo3 = st.columns(3)
                 
-                glock_id = "57dbcccd1c2d4e7f81662316dfe11e6b"
-                vest_id = "a1974e3f1b8c455d80aeb8abc35975ad"
+                # IDs de Modelos 3D Optimizados
+                glock_id = "57dbcccd1c2d4e7f81662316dfe11e6b" 
+                vest_id = "7da8204c9a7c472fa71653b9c999f1a2" # Chaleco Low Poly (Más militar y limpio)
+                case_id = "df55b96425664a039609d2cf4f99b932" # Pelican Case (Maleta de seguridad/comunicaciones)
                 params = "?autostart=1&ui_controls=0&ui_infos=0&ui_inspector=0&ui_stop=0&ui_theme=dark&ui_watermark=0&transparent=1"
-                
+
+                def render_capsule(title, color, model_id, main_count, details):
+                    details_html = ""
+                    for k, v in details.items():
+                        details_html += f'<div style="display: flex; justify-content: space-between; color: #CBD5E1; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; margin-bottom: 5px;"><span>{k}</span> <span style="color: {color}; font-weight: 900; font-size: 0.9rem;">{v}</span></div>'
+
+                    return f"""
+                    <style>
+                        .capsule {{ width: 280px; height: 280px; border-radius: 140px; background: radial-gradient(circle, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%); border: 3px solid {color}; margin: 0 auto; position: relative; display: flex; flex-direction: column; align-items: center; box-shadow: 0 0 30px {color}40; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); cursor: pointer; }}
+                        .capsule:hover {{ height: 430px; border-radius: 25px; box-shadow: 0 0 45px {color}60; border: 2px solid {color}; }}
+                        .title-top {{ position: absolute; top: 25px; color: {color}; font-weight: 900; letter-spacing: 2px; font-size: 1rem; z-index: 10; text-shadow: 0 0 10px {color}; transition: top 0.4s; text-align: center; width: 100%; }}
+                        .iframe-container {{ position: absolute; top: 50px; width: 100%; height: 200px; overflow: hidden; z-index: 5; transition: top 0.4s; }}
+                        .capsule:hover .iframe-container {{ top: 15px; transform: scale(0.9); }}
+                        .main-count {{ position: absolute; bottom: 25px; color: #F8FAFC; font-weight: 900; font-size: 3.5rem; z-index: 10; font-family: 'Courier New', Courier, monospace; line-height: 1; text-shadow: 0 0 15px {color}; transition: opacity 0.3s, bottom 0.4s; }}
+                        .capsule:hover .main-count {{ opacity: 0; bottom: -20px; pointer-events: none; }}
+                        .details-list {{ position: absolute; top: 280px; width: 80%; opacity: 0; transition: opacity 0.5s, top 0.4s; z-index: 10; display: flex; flex-direction: column; pointer-events: none; }}
+                        .capsule:hover .details-list {{ opacity: 1; top: 230px; pointer-events: auto; }}
+                        .hint {{ position: absolute; bottom: 10px; font-size: 0.55rem; color: #94A3B8; opacity: 1; transition: opacity 0.3s; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }}
+                        .capsule:hover .hint {{ opacity: 0; }}
+                    </style>
+                    <div class="capsule">
+                        <div class="title-top">{title}</div>
+                        <div class="iframe-container">
+                            <iframe src="https://sketchfab.com/models/{model_id}/embed{params}" style="position: absolute; top: -75px; left: -10%; width: 120%; height: 350px; border: none; pointer-events: auto;" allow="autoplay; fullscreen; xr-spatial-tracking"></iframe>
+                        </div>
+                        <div class="main-count">{main_count}</div>
+                        <div class="hint">▼ Hover para desglosar ▼</div>
+                        <div class="details-list">
+                            {details_html}
+                        </div>
+                    </div>
+                    """
+
+                # 1. ARMAMENTO (Verde)
                 with holo1:
-                    components.html(f"""
-                    <div style="width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%); border: 3px solid #10B981; margin: 0 auto; position: relative; display: flex; flex-direction: column; align-items: center; box-shadow: 0 0 30px rgba(16, 185, 129, 0.25); overflow: hidden; font-family: sans-serif;">
-                        <div style="position: absolute; top: 25px; color: #10B981; font-weight: 900; letter-spacing: 3px; font-size: 1.1rem; z-index: 10; text-shadow: 0 0 10px #10B981;">GLOCK 19</div>
-                        <div style="position: absolute; top: 60px; width: 100%; height: 200px; overflow: hidden; z-index: 5;">
-                            <iframe src="https://sketchfab.com/models/{glock_id}/embed{params}" style="position: absolute; top: -75px; left: -10%; width: 120%; height: 350px; border: none; pointer-events: auto;" allow="autoplay; fullscreen; xr-spatial-tracking"></iframe>
-                        </div>
-                        <div style="position: absolute; bottom: 20px; color: #F8FAFC; font-weight: 900; font-size: 3rem; z-index: 10; font-family: 'Courier New', Courier, monospace; line-height: 1; text-shadow: 0 0 15px rgba(16,185,129,0.8);">{total_glock}</div>
-                    </div>
-                    """, height=350)
+                    dic_armamento = {"Glock 19": total_glock, "Cacerinas": total_cacerinas, "Cartuchos .38": total_cartuchos}
+                    components.html(render_capsule("ARMAMENTO", "#10B981", glock_id, total_glock, dic_armamento), height=450)
                     
+                # 2. PROTECCIÓN TÁCTICA (Naranja)
                 with holo2:
-                    components.html(f"""
-                    <div style="width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%); border: 3px solid #FF7A00; margin: 0 auto; position: relative; display: flex; flex-direction: column; align-items: center; box-shadow: 0 0 30px rgba(255, 122, 0, 0.25); overflow: hidden; font-family: sans-serif;">
-                        <div style="position: absolute; top: 25px; color: #FF7A00; font-weight: 900; letter-spacing: 3px; font-size: 1.1rem; z-index: 10; text-shadow: 0 0 10px #FF7A00;">CHALECOS</div>
-                        <div style="position: absolute; top: 60px; width: 100%; height: 200px; overflow: hidden; z-index: 5;">
-                            <iframe src="https://sketchfab.com/models/{vest_id}/embed{params}" style="position: absolute; top: -75px; left: -10%; width: 120%; height: 350px; border: none; pointer-events: auto;" allow="autoplay; fullscreen; xr-spatial-tracking"></iframe>
-                        </div>
-                        <div style="position: absolute; bottom: 20px; color: #F8FAFC; font-weight: 900; font-size: 3rem; z-index: 10; font-family: 'Courier New', Courier, monospace; line-height: 1; text-shadow: 0 0 15px rgba(255,122,0,0.8);">{total_chaleco}</div>
-                    </div>
-                    """, height=350)
+                    dic_proteccion = {"Chaleco Antibalas": total_chaleco, "Funda Exterior": total_funda}
+                    components.html(render_capsule("PROTECCIÓN", "#FF7A00", vest_id, total_chaleco, dic_proteccion), height=450)
+
+                # 3. ACCESORIOS & COMMS (Cian / Azul Neón)
+                with holo3:
+                    dic_comms = {"Celular": total_celular, "Caja Seguridad": total_caja, "Cartuchera": total_cartuchera, "Porta Cacerina": total_porta, "Fotocheck": total_fotocheck}
+                    components.html(render_capsule("ACCESORIOS", "#00E5FF", case_id, total_celular, dic_comms), height=450)
 
         else:
             cols_resguardos = [c for c in df_eq.columns if ',' in str(c) and c != coordinador]
@@ -455,7 +484,7 @@ with tab3:
                 st.dataframe(df_eq[['CANTIDAD', 'EQUIPO', resguardo_seleccionado]], hide_index=True, use_container_width=True)
             else:
                 df_eq_vertical = df_eq.melt(id_vars=['EQUIPO', 'CANTIDAD'], value_vars=cols_resguardos, var_name='RESGUARDO', value_name='ASIGNADO')
-                df_eq_vertical = df_eq_vertical[pd.to_numeric(df_eq_vertical['ASIGNADO'], errors['coerce']).fillna(0) > 0]
+                df_eq_vertical = df_eq_vertical[pd.to_numeric(df_eq_vertical['ASIGNADO'], errors='coerce').fillna(0) > 0]
                 st.dataframe(df_eq_vertical[['RESGUARDO', 'CANTIDAD', 'EQUIPO']], hide_index=True, use_container_width=True)
     else:
         st.error("Bóveda de armería vacía o conexión interrumpida.")
