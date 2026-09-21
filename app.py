@@ -408,7 +408,7 @@ with tab3:
                 st.markdown("<hr style='border-color: #E2E8F0; margin: 40px 0;'>", unsafe_allow_html=True)
 
                 # ========================================================
-                # CÁPSULAS HOLOGRÁFICAS 3D
+                # CÁPSULAS 2D LEVITANTES (CERO 3D, CERO LAG, MÁXIMO CONTRASTE)
                 # ========================================================
                 total_glock = int(df_eq[df_eq['EQUIPO'] == 'Glock 19']['CANTIDAD'].sum())
                 total_cacerinas = int(df_eq[df_eq['EQUIPO'] == 'Cacerinas']['CANTIDAD'].sum())
@@ -421,49 +421,58 @@ with tab3:
                 total_porta = int(df_eq[df_eq['EQUIPO'] == 'Porta Cacerinas']['CANTIDAD'].sum())
                 total_fotochecks = int(df_eq[df_eq['EQUIPO'] == 'Fotocheck Liderman']['CANTIDAD'].sum())
 
-                import streamlit.components.v1 as components
-                holo1, holo2, holo3 = st.columns(3)
-                
-                glock_id = "57dbcccd1c2d4e7f81662316dfe11e6b" 
-                vest_id = "7da8204c9a7c472fa71653b9c999f1a2" # ID original que SÍ funciona. Lo volveremos negro con CSS.
-                case_id = "df55b96425664a039609d2cf4f99b932" 
-                params = "?autostart=1&ui_controls=0&ui_infos=0&ui_inspector=0&ui_stop=0&ui_theme=dark&ui_watermark=0&transparent=1"
+                # Animación Global CSS
+                st.markdown("""
+                <style>
+                @keyframes levitate {
+                    0% { transform: translateY(0px); }
+                    50% { transform: translateY(-12px); }
+                    100% { transform: translateY(0px); }
+                }
+                </style>
+                """, unsafe_allow_html=True)
 
-                def render_3d_capsule(model_id, main_count, color, iframe_size="800px", scale="0.45", extra_css=""):
-                    # TRUCO CSS: Un contenedor gigante (iframe_size) empuja los botones de Sketchfab hacia los bordes extremos. 
-                    # Al aplicar 'scale', el modelo se encoge, pero la interfaz basura queda oculta fuera del círculo visible (250px).
+                holo1, holo2, holo3 = st.columns(3)
+
+                def render_2d_capsule(img_url, main_count, color):
                     return f"""
-                    <div style="width: 250px; height: 250px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(30,41,59,1) 75%); border: 4px solid {color}; margin: 0 auto; position: relative; box-shadow: 0 0 35px {color}60; overflow: hidden;">
-                        <div style="position: absolute; width: {iframe_size}; height: {iframe_size}; top: 50%; left: 50%; transform: translate(-50%, -50%) scale({scale}); pointer-events: auto;">
-                            <iframe src="https://sketchfab.com/models/{model_id}/embed{params}" style="width: 100%; height: 100%; border: none; {extra_css}" allow="autoplay; fullscreen; xr-spatial-tracking"></iframe>
+                    <div style="width: 250px; height: 250px; border-radius: 50%; background: radial-gradient(circle, rgba(15,23,42,0.8) 0%, rgba(15,23,42,1) 100%); border: 3px solid {color}; margin: 0 auto; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 35px {color}60, inset 0 0 30px {color}20; overflow: hidden;">
+                        
+                        <!-- Resplandor trasero para matar el fondo oscuro -->
+                        <div style="position: absolute; width: 140px; height: 140px; background: {color}; filter: blur(45px); opacity: 0.35; top: 15%;"></div>
+
+                        <!-- Imagen PNG Levitando -->
+                        <div style="animation: levitate 4s ease-in-out infinite; z-index: 5; margin-bottom: 10px;">
+                            <img src="{img_url}" style="height: 110px; width: auto; max-width: 180px; object-fit: contain; filter: drop-shadow(0 15px 10px rgba(0,0,0,0.6));" />
                         </div>
-                        <div style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); color: #F8FAFC; font-weight: 900; font-size: 3.5rem; font-family: 'Courier New', Courier, monospace; line-height: 1; text-shadow: 0 0 20px {color}; z-index: 10; pointer-events: none;">{main_count}</div>
+
+                        <!-- Contador -->
+                        <div style="position: absolute; bottom: 15px; color: #F8FAFC; font-weight: 900; font-size: 3.5rem; font-family: 'Courier New', Courier, monospace; line-height: 1; text-shadow: 0 0 15px {color}; z-index: 10;">{main_count}</div>
                     </div>
                     """
 
-                # 1. ARMAMENTO
                 with holo1:
                     st.markdown("<h3 style='text-align: center; color: #10B981; font-weight: 900; letter-spacing: 2px;'>ARMAMENTO</h3>", unsafe_allow_html=True)
-                    components.html(render_3d_capsule(glock_id, total_glock, "#10B981", iframe_size="800px", scale="0.48"), height=270)
+                    # PNG de Pistola Táctica Transparente
+                    st.markdown(render_2d_capsule("https://pngimg.com/uploads/pistol/pistol_PNG75529.png", total_glock, "#10B981"), unsafe_allow_html=True)
 
-                # 2. PROTECCIÓN TÁCTICA
                 with holo2:
                     st.markdown("<h3 style='text-align: center; color: #FF7A00; font-weight: 900; letter-spacing: 2px;'>PROTECCIÓN</h3>", unsafe_allow_html=True)
-                    # El chaleco liso negro con el extra_css
-                    components.html(render_3d_capsule(vest_id, total_chaleco, "#FF7A00", iframe_size="600px", scale="0.75", extra_css="filter: grayscale(100%) brightness(0.65);"), height=270)
+                    # PNG de Chaleco VIP Transparente
+                    st.markdown(render_2d_capsule("https://pngimg.com/uploads/bulletproof_vest/bulletproof_vest_PNG44.png", total_chaleco, "#FF7A00"), unsafe_allow_html=True)
 
-                # 3. ACCESORIOS & COMMS
                 with holo3:
                     st.markdown("<h3 style='text-align: center; color: #00E5FF; font-weight: 900; letter-spacing: 2px;'>ACCESORIOS</h3>", unsafe_allow_html=True)
-                    components.html(render_3d_capsule(case_id, total_caja, "#00E5FF", iframe_size="600px", scale="0.75"), height=270)
+                    # PNG de Maletín Táctico Transparente
+                    st.markdown(render_2d_capsule("https://pngimg.com/uploads/briefcase/briefcase_PNG41.png", total_caja, "#00E5FF"), unsafe_allow_html=True)
 
-                st.markdown("<br>", unsafe_allow_html=True)
+
+                st.markdown("<br><br>", unsafe_allow_html=True)
 
                 # ========================================================
                 # MODAL DE DESGLOSE (PESTAÑAS INSTANTÁNEAS Y FONDOS BLANCOS)
                 # ========================================================
                 
-                # Plantilla HTML para tarjetas con FONDO BLANCO para que tus fotos combinen perfecto
                 def render_item(url_img, count, name, color):
                     return f"""
                     <div style='background: #FFFFFF; padding: 25px; border-radius: 12px; border: 2px solid {color}; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1);'>
@@ -475,10 +484,8 @@ with tab3:
 
                 st.markdown("<h3 style='text-align: center; color: #002A8D; font-weight: 900; text-transform: uppercase; margin-bottom: 20px;'>⚡ Panel de Desglose Táctico</h3>", unsafe_allow_html=True)
                 
-                # PESTAÑAS (TABS) DE STREAMLIT: Carga instantánea, sin parpadeos blancos.
                 tab_arm, tab_prot, tab_acc = st.tabs(["🔫 ARMAMENTO", "🛡️ PROTECCIÓN", "🧰 ACCESORIOS"])
                 
-                # Panel Armamento
                 with tab_arm:
                     st.markdown("<br>", unsafe_allow_html=True)
                     i1, i2, i3 = st.columns(3)
@@ -489,7 +496,6 @@ with tab3:
                     with i3:
                         st.markdown(render_item("https://www.indumil.gov.co/wp-content/uploads/2024/02/Municion_de_Defensa_Personal_03.png", total_cartuchos, "Cartuchos .38", "#10B981"), unsafe_allow_html=True)
                 
-                # Panel Protección
                 with tab_prot:
                     st.markdown("<br>", unsafe_allow_html=True)
                     i1, i2 = st.columns(2)
@@ -498,7 +504,6 @@ with tab3:
                     with i2:
                         st.markdown(render_item("https://i.ytimg.com/vi/NUfdDG9M_PM/maxresdefault.jpg", total_funda, "Fundas Exteriores", "#FF7A00"), unsafe_allow_html=True)
                 
-                # Panel Accesorios
                 with tab_acc:
                     st.markdown("<br>", unsafe_allow_html=True)
                     i1, i2, i3 = st.columns(3)
@@ -514,7 +519,6 @@ with tab3:
                     with i4:
                         st.markdown(render_item("https://tactical.kipuasistente.com//files/imgarticulos/521-104.jpg", total_porta, "Porta Cacerinas", "#00E5FF"), unsafe_allow_html=True)
                     with i5:
-                        # Tarjeta fotocheck también con fondo blanco
                         st.markdown(f"""
                         <div style='background: #FFFFFF; padding: 25px; border-radius: 12px; border: 2px solid #00E5FF; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1);'>
                             <div style='font-size: 5rem; height: 110px; display: flex; align-items: center; margin-bottom: 20px;'>🪪</div>
