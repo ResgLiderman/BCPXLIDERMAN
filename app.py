@@ -408,7 +408,7 @@ with tab3:
                 st.markdown("<hr style='border-color: #E2E8F0; margin: 40px 0;'>", unsafe_allow_html=True)
 
                 # ========================================================
-                # CÁPSULAS 2D LEVITANTES (CERO 3D, CERO LAG, MÁXIMO CONTRASTE)
+                # CÁPSULAS 2D LEVITANTES (BLINDADAS CON COMPONENTS.HTML)
                 # ========================================================
                 total_glock = int(df_eq[df_eq['EQUIPO'] == 'Glock 19']['CANTIDAD'].sum())
                 total_cacerinas = int(df_eq[df_eq['EQUIPO'] == 'Cacerinas']['CANTIDAD'].sum())
@@ -421,25 +421,22 @@ with tab3:
                 total_porta = int(df_eq[df_eq['EQUIPO'] == 'Porta Cacerinas']['CANTIDAD'].sum())
                 total_fotochecks = int(df_eq[df_eq['EQUIPO'] == 'Fotocheck Liderman']['CANTIDAD'].sum())
 
-                # Animación Global CSS
-                st.markdown("""
-                <style>
-                @keyframes levitate {
-                    0% { transform: translateY(0px); }
-                    50% { transform: translateY(-12px); }
-                    100% { transform: translateY(0px); }
-                }
-                </style>
-                """, unsafe_allow_html=True)
-
+                import streamlit.components.v1 as components
                 holo1, holo2, holo3 = st.columns(3)
 
                 def render_2d_capsule(img_url, main_count, color):
                     return f"""
-                    <div style="width: 250px; height: 250px; border-radius: 50%; background: radial-gradient(circle, rgba(15,23,42,0.8) 0%, rgba(15,23,42,1) 100%); border: 3px solid {color}; margin: 0 auto; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 35px {color}60, inset 0 0 30px {color}20; overflow: hidden;">
+                    <style>
+                    @keyframes levitate {{
+                        0% {{ transform: translateY(0px); }}
+                        50% {{ transform: translateY(-12px); }}
+                        100% {{ transform: translateY(0px); }}
+                    }}
+                    </style>
+                    <div style="width: 250px; height: 250px; border-radius: 50%; background: radial-gradient(circle, rgba(15,23,42,0.8) 0%, rgba(15,23,42,1) 100%); border: 3px solid {color}; margin: 0 auto; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 35px {color}60, inset 0 0 30px {color}20; overflow: hidden; font-family: sans-serif;">
                         
                         <!-- Resplandor trasero para matar el fondo oscuro -->
-                        <div style="position: absolute; width: 140px; height: 140px; background: {color}; filter: blur(45px); opacity: 0.35; top: 15%;"></div>
+                        <div style="position: absolute; width: 140px; height: 140px; background: {color}; filter: blur(45px); opacity: 0.4; top: 15%;"></div>
 
                         <!-- Imagen PNG Levitando -->
                         <div style="animation: levitate 4s ease-in-out infinite; z-index: 5; margin-bottom: 10px;">
@@ -453,24 +450,21 @@ with tab3:
 
                 with holo1:
                     st.markdown("<h3 style='text-align: center; color: #10B981; font-weight: 900; letter-spacing: 2px;'>ARMAMENTO</h3>", unsafe_allow_html=True)
-                    # PNG de Pistola Táctica Transparente
-                    st.markdown(render_2d_capsule("https://pngimg.com/uploads/pistol/pistol_PNG75529.png", total_glock, "#10B981"), unsafe_allow_html=True)
+                    components.html(render_2d_capsule("https://pngimg.com/uploads/pistol/pistol_PNG75529.png", total_glock, "#10B981"), height=270)
 
                 with holo2:
                     st.markdown("<h3 style='text-align: center; color: #FF7A00; font-weight: 900; letter-spacing: 2px;'>PROTECCIÓN</h3>", unsafe_allow_html=True)
-                    # PNG de Chaleco VIP Transparente
-                    st.markdown(render_2d_capsule("https://pngimg.com/uploads/bulletproof_vest/bulletproof_vest_PNG44.png", total_chaleco, "#FF7A00"), unsafe_allow_html=True)
+                    components.html(render_2d_capsule("https://pngimg.com/uploads/bulletproof_vest/bulletproof_vest_PNG44.png", total_chaleco, "#FF7A00"), height=270)
 
                 with holo3:
                     st.markdown("<h3 style='text-align: center; color: #00E5FF; font-weight: 900; letter-spacing: 2px;'>ACCESORIOS</h3>", unsafe_allow_html=True)
-                    # PNG de Maletín Táctico Transparente
-                    st.markdown(render_2d_capsule("https://pngimg.com/uploads/briefcase/briefcase_PNG41.png", total_caja, "#00E5FF"), unsafe_allow_html=True)
+                    components.html(render_2d_capsule("https://pngimg.com/uploads/briefcase/briefcase_PNG41.png", total_caja, "#00E5FF"), height=270)
 
 
                 st.markdown("<br><br>", unsafe_allow_html=True)
 
                 # ========================================================
-                # MODAL DE DESGLOSE (PESTAÑAS INSTANTÁNEAS Y FONDOS BLANCOS)
+                # MODAL DE DESGLOSE (TABS NATIVAS - RENDIMIENTO 100%)
                 # ========================================================
                 
                 def render_item(url_img, count, name, color):
