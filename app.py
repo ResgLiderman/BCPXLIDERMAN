@@ -327,50 +327,88 @@ with tab1:
             if f_apt: st.plotly_chart(f_apt, use_container_width=True)
 
 with tab2:
-    v1, v2 = st.columns(2)
-    with v1:
-        if 'emo' in dfs and not dfs['emo'].empty:
-            if resguardo_seleccionado == "Todos":
+    if 'emo' in dfs and not dfs['emo'].empty:
+        if resguardo_seleccionado == "Todos":
+            emo_col1, emo_col2 = st.columns(2)
+            with emo_col1:
+                df_plot = filtrar_df(dfs['emo']).sort_values('DÍAS RESTANTES').head(10)
+                fig1 = px.bar(df_plot, x='DÍAS RESTANTES', y='RESGUARDO', orientation='h', title="Top Vencimientos EMO (Días)",  
+                              color=['Crítico' if x<30 else 'Vigente' for x in df_plot['DÍAS RESTANTES']],
+                              color_discrete_map={'Crítico': '#d9534f', 'Vigente': '#002A8D'})
+                fig1.add_vline(x=30, line_dash="solid", line_color="black")
+                fig1.update_layout(showlegend=False, margin=dict(t=40, b=20, l=20, r=20))
+                st.plotly_chart(fig1, use_container_width=True)
+                
+            with emo_col2:
                 df_emo_g = dfs['emo'].copy()
                 df_emo_g['ESTADO_EMO'] = ['Crítico (<30 días)' if x < 30 else 'Vigente' for x in df_emo_g['DÍAS RESTANTES']]
                 df_counts = df_emo_g['ESTADO_EMO'].value_counts().reset_index()
                 df_counts.columns = ['ESTADO', 'CANTIDAD']
                 
                 fig_donut = px.pie(df_counts, names='ESTADO', values='CANTIDAD', hole=0.6, 
-                                   title="Distribución de Vigencia EMO", 
+                                   title="Distribución Porcentual EMO", 
                                    color='ESTADO', color_discrete_map={'Crítico (<30 días)': '#d9534f', 'Vigente': '#002A8D'})
                 fig_donut.update_traces(textposition='inside', textinfo='percent+label')
                 fig_donut.update_layout(showlegend=False, margin=dict(t=40, b=20, l=20, r=20))
                 st.plotly_chart(fig_donut, use_container_width=True)
+        else:
+            df_emo_ind = filtrar_df(dfs['emo'])
+            st.markdown("**🩺 Control Médico EMO**")
+            if not df_emo_ind.empty and 'DÍAS RESTANTES' in df_emo_ind.columns:
+                dias_restantes = int(df_emo_ind['DÍAS RESTANTES'].iloc[0])
+                color_badge = "bg-red" if dias_restantes < 30 else "bg-green"
+                estado_texto = "CRÍTICO - VENCE PRONTO" if dias_restantes < 30 else "VIGENTE"
+                
+                st.markdown(f"""
+                <div style="background: linear-gradient(145deg, #0F172A, #1E293B); padding: 30px; border-radius: 12px; text-align: center; border: 1px solid {'#DC2626' if dias_restantes < 30 else '#10B981'};">
+                    <div style="color: #94A3B8; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 10px;">VENCIMIENTO DE EXAMEN MÉDICO (EMO)</div>
+                    <div style="color: {'#DC2626' if dias_restantes < 30 else '#10B981'}; font-size: 3.5rem; font-weight: 900; font-family: 'Courier New', Courier, monospace;">{dias_restantes}</div>
+                    <div style="color: #F8FAFC; font-size: 1rem; font-weight: 600; margin-top: 5px;">Días Restantes</div>
+                    <div style="margin-top: 15px;"><span class="{color_badge}" style="padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">{estado_texto}</span></div>
+                </div>
+                """, unsafe_allow_html=True)
             else:
-                df_emo_ind = filtrar_df(dfs['emo'])
-                st.markdown("**🩺 Control Médico EMO**")
-                if not df_emo_ind.empty and 'DÍAS RESTANTES' in df_emo_ind.columns:
-                    dias_restantes = int(df_emo_ind['DÍAS RESTANTES'].iloc[0])
-                    color_badge = "bg-red" if dias_restantes < 30 else "bg-green"
-                    estado_texto = "CRÍTICO - VENCE PRONTO" if dias_restantes < 30 else "VIGENTE"
-                    
-                    st.markdown(f"""
-                    <div style="background: linear-gradient(145deg, #0F172A, #1E293B); padding: 30px; border-radius: 12px; text-align: center; border: 1px solid {'#DC2626' if dias_restantes < 30 else '#10B981'};">
-                        <div style="color: #94A3B8; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 10px;">VENCIMIENTO DE EXAMEN MÉDICO (EMO)</div>
-                        <div style="color: {'#DC2626' if dias_restantes < 30 else '#10B981'}; font-size: 3.5rem; font-weight: 900; font-family: 'Courier New', Courier, monospace;">{dias_restantes}</div>
-                        <div style="color: #F8FAFC; font-size: 1rem; font-weight: 600; margin-top: 5px;">Días Restantes</div>
-                        <div style="margin-top: 15px;"><span class="{color_badge}" style="padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">{estado_texto}</span></div>
+                st.info("Sin registros EMO para este operador.")
+
+    st.markdown("<hr style='border-color: #E2E8F0; margin: 40px 0;'>", unsafe_allow_html=True)
+    
+    # SECCIÓN DE VACACIONES ABAJO
+    st.markdown("<h4 style='color: #002A8D; margin-bottom: 20px;'>🌴 Control de Vacaciones por Periodo</h4>", unsafe_allow_html=True)
+    if 'vacaciones' in dfs and not dfs['vacaciones'].empty:
+        df_vac = filtrar_df(dfs['vacaciones'])
+        if not df_vac.empty:
+            # Renderizado ejecutivo limpio en formato de tarjetas/métricas por periodo para evitar la tabla fea
+            for _, row in df_vac.iterrows():
+                nombre_res = row.get('RESGUARDO', 'Operador')
+                ingreso = row.get('F. DE INGRESO', 'N/D')
+                p1 = row.get('2024 - 2025', '-')
+                p2 = row.get('2025 - 2026', '-')
+                p3 = row.get('2026 - 2027', '-')
+                
+                st.markdown(f"""
+                <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-left: 5px solid #002A8D; padding: 15px 20px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong style="color: #0F172A; font-size: 1.05rem;">{nombre_res}</strong>
+                        <div style="color: #64748B; font-size: 0.85rem; margin-top: 2px;">Ingreso: {ingreso}</div>
                     </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.info("Sin registros EMO para este operador.")
-            
-    with v2:
-        if 'vacaciones' in dfs and not dfs['vacaciones'].empty:
-            st.markdown("**🌴 Control de Vacaciones por Periodo**")
-            df_vac = filtrar_df(dfs['vacaciones'])
-            
-            # Limpiamos columnas innecesarias o vacías si las hay y mostramos la tabla completa del periodo
-            if not df_vac.empty:
-                st.dataframe(df_vac, use_container_width=True, hide_index=True)
-            else:
-                st.info("Sin registros de vacaciones disponibles.")
+                    <div style="display: flex; gap: 25px; text-align: center;">
+                        <div style="background: #F8FAFC; padding: 8px 12px; border-radius: 6px; border: 1px solid #E2E8F0;">
+                            <div style="font-size: 0.7rem; color: #64748B; font-weight: 700;">2024-2025</div>
+                            <div style="font-size: 1rem; font-weight: 800; color: #0F172A;">{p1}</div>
+                        </div>
+                        <div style="background: #F8FAFC; padding: 8px 12px; border-radius: 6px; border: 1px solid #E2E8F0;">
+                            <div style="font-size: 0.7rem; color: #64748B; font-weight: 700;">2025-2026</div>
+                            <div style="font-size: 1rem; font-weight: 800; color: #0F172A;">{p2}</div>
+                        </div>
+                        <div style="background: #F8FAFC; padding: 8px 12px; border-radius: 6px; border: 1px solid #E2E8F0;">
+                            <div style="font-size: 0.7rem; color: #64748B; font-weight: 700;">2026-2027</div>
+                            <div style="font-size: 1rem; font-weight: 800; color: #0F172A;">{p3}</div>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.info("Sin registros de vacaciones para mostrar.")
 
 with tab3:    
     if 'equipamiento' in dfs and not dfs['equipamiento'].empty:
