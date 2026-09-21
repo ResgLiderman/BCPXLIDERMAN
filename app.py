@@ -144,7 +144,7 @@ lista_resguardos = dfs['emo']['RESGUARDO'].dropna().unique().tolist() if 'emo' i
 st.sidebar.markdown('<div style="text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/0/0d/Logo-bcp-vector.svg" width="180"></div>', unsafe_allow_html=True)
 st.sidebar.markdown("---")
 st.sidebar.title("⚙️ Filtro Operativo")
-resguardo_seleccionado = st.sidebar.radio("Fijar Objetivo (Resguardo):", ["Todos"] + lista_resguardos)
+resguardo_seleccionado = st.sidebar.radio("Seleccionar Resguardo:", ["Todos"] + lista_resguardos)
 
 radar_url = "https://lottie.host/7c7328bf-4277-4011-a54c-1123f13fb46e/a70i3dXVGk.json"
 animacion_radar = cargar_animacion_hacker(radar_url)
@@ -184,7 +184,7 @@ if resguardo_seleccionado != "Todos":
     d_col1, d_col2 = st.columns([1, 2])
     
     with d_col1:
-        st.markdown("**🕷️ Perfil Táctico (Spider Chart)**")
+        st.markdown("**Perfil Táctico**")
         options = {
             "tooltip": {},
             "legend": {"data": ["Desempeño Actual", "Umbral Mínimo", "Estándar BCP"], "bottom": 0},
@@ -251,7 +251,7 @@ with k6: st.markdown(f'<div class="kpi-card"><div class="kpi-title">{etiq_kpi} F
 tab1, tab2, tab3, tab4 = st.tabs(["🎯 Panel Táctico", "⚖️ Legal & RRHH", "📦 Logística", "🎓 Capacitaciones"])
 
 with tab1:
-    st.markdown("<h4 style='color: #002A8D;'>🔍 Matriz Consolidada de Riesgo Operativo (Ag-Grid)</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color: #002A8D;'>Matriz Consolidada de las Operaciones</h4>", unsafe_allow_html=True)
     
     df_lista = []
     for hoja in ['tiro', 'maniobra', 'apt_fisica']:
@@ -388,14 +388,14 @@ with tab3:
                         <h1 style="color: #F8FAFC; font-size: 5rem; margin: 0; line-height: 1;">{total_resguardos}</h1>
                         <p style="color: #FF7A00; font-weight: 600; font-size: 1.1rem; margin-top: 10px; text-transform: uppercase;">Total de Resguardos</p>
                         <hr style="border-color: #334155; margin: 25px 0;">
-                        <p style="color: #CBD5E1; font-size: 0.85rem; line-height: 1.6;">Operadores tácticos sincronizados desde la base de datos central.</p>
+                        <p style="color: #CBD5E1; font-size: 0.85rem; line-height: 1.6;">Sincronización en tiempo real.</p>
                     </div>
                     """, unsafe_allow_html=True)
 
                 with c2:
                     st.markdown(f"""
                     <div style="background: linear-gradient(145deg, #1E293B, #0F172A); padding: 40px 30px; border-radius: 16px; border-top: 6px solid #10B981; box-shadow: 0 10px 25px rgba(0,0,0,0.1); height: 100%;">
-                        <h5 style="color: #94A3B8; text-transform: uppercase; letter-spacing: 2px; font-size: 0.9rem; margin-bottom: 20px;">Estado de Bóveda Corporativa</h5>
+                        <h5 style="color: #94A3B8; text-transform: uppercase; letter-spacing: 2px; font-size: 0.9rem; margin-bottom: 20px;">Estado de armamento en campo.</h5>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                             <span style="color: #F8FAFC; font-size: 1.2rem; font-weight: 600;">Armamento Operativo</span>
                             <span style="color: #10B981; font-size: 1.5rem; font-weight: 900;">100%</span>
@@ -486,15 +486,15 @@ with tab3:
 
                 st.markdown("<h3 style='text-align: center; color: #002A8D; font-weight: 900; text-transform: uppercase; margin-bottom: 20px;'>⚡ Panel de Desglose Táctico</h3>", unsafe_allow_html=True)
                 
-                tab_arm, tab_prot, tab_acc = st.tabs(["🔫 ARMAMENTO", "🛡️ PROTECCIÓN", "🧰 ACCESORIOS"])
+                tab_arm, tab_prot, tab_acc = st.tabs(["ARMAMENTO", "PROTECCIÓN", "ACCESORIOS"])
                 
                 with tab_arm:
                     st.markdown("<br>", unsafe_allow_html=True)
                     i1, i2, i3 = st.columns(3)
                     with i1:
-                        st.markdown(render_item("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTU_L79X2myjyPYQgCNjDnsSuUvfYNLRFIqNuwvizxcGfzOZlului4-d8w&s=10", total_glock, "Glock 19 Gen 5", "#10B981"), unsafe_allow_html=True)
+                        st.markdown(render_item("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTU_L79X2myjyPYQgCNjDnsSuUvfYNLRFIqNuwvizxcGfzOZlului4-d8w&s=10", total_glock, "Glock 19", "#10B981"), unsafe_allow_html=True)
                     with i2:
-                        st.markdown(render_item("https://www.tapperu.com/cdn/shop/files/MGGL33812_1_HR.jpg?v=1754591160", total_cacerinas, "Cacerinas 9mm", "#10B981"), unsafe_allow_html=True)
+                        st.markdown(render_item("https://www.tapperu.com/cdn/shop/files/MGGL33812_1_HR.jpg?v=1754591160", total_cacerinas, "Cacerinas 9MM", "#10B981"), unsafe_allow_html=True)
                     with i3:
                         st.markdown(render_item("https://www.indumil.gov.co/wp-content/uploads/2024/02/Municion_de_Defensa_Personal_03.png", total_cartuchos, "Cartuchos .38", "#10B981"), unsafe_allow_html=True)
                 
@@ -504,7 +504,7 @@ with tab3:
                     with i1:
                         st.markdown(render_item("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWBTRB7szjQBf8Xg50QUUs8tobt9uNpTeQ9kyrD6DYf2NX0laZjkJ7FNo&s=10", total_chaleco, "Chalecos Antibalas", "#FF7A00"), unsafe_allow_html=True)
                     with i2:
-                        st.markdown(render_item("https://i.ytimg.com/vi/NUfdDG9M_PM/maxresdefault.jpg", total_funda, "Fundas Exteriores", "#FF7A00"), unsafe_allow_html=True)
+                        st.markdown(render_item("https://i.ytimg.com/vi/NUfdDG9M_PM/maxresdefault.jpg", total_funda, "Fundas de Chaleco", "#FF7A00"), unsafe_allow_html=True)
                 
                 with tab_acc:
                     st.markdown("<br>", unsafe_allow_html=True)
