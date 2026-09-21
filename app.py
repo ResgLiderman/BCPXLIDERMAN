@@ -440,15 +440,15 @@ with tab3:
                 # CÁPSULAS 2D LEVITANTES (BLINDADAS CON COMPONENTS.HTML)
                 # ========================================================
                 total_glock = int(df_eq[df_eq['EQUIPO'] == 'Glock 19']['CANTIDAD'].sum())
-                total_cacerinas = int(df_eq[df_eq['EQUIPO'] == 'Cacerinas']['CANTIDAD'].sum())
-                total_cartuchos = int(df_eq[df_eq['EQUIPO'] == 'Cartuchos .38']['CANTIDAD'].sum())
-                total_chaleco = int(df_eq[df_eq['EQUIPO'] == 'Chaleco Antibalas']['CANTIDAD'].sum())
-                total_funda = int(df_eq[df_eq['EQUIPO'] == 'Funda de Chaleco']['CANTIDAD'].sum())
-                total_celular = int(df_eq[df_eq['EQUIPO'] == 'Teléfono Celular']['CANTIDAD'].sum())
-                total_caja = int(df_eq[df_eq['EQUIPO'] == 'Caja de Seguridad']['CANTIDAD'].sum())
-                total_cartuchera = int(df_eq[df_eq['EQUIPO'] == 'Cartuchera']['CANTIDAD'].sum())
+                total_cacerinas = int(df_eq[df_eq['EQUIPO'] == 'Cacerinas 9MM']['CANTIDAD'].sum())
+                total_cartuchos = int(df_eq[df_eq['EQUIPO'] == 'Munición 9MM PB']['CANTIDAD'].sum())
+                total_chaleco = int(df_eq[df_eq['EQUIPO'] == 'Chalecos Antibalas Ergonómico']['CANTIDAD'].sum())
+                total_funda = int(df_eq[df_eq['EQUIPO'] == 'Fundas de Chaleco']['CANTIDAD'].sum())
+                total_celular = int(df_eq[df_eq['EQUIPO'] == 'Teléfonos Móviles']['CANTIDAD'].sum())
+                total_caja = int(df_eq[df_eq['EQUIPO'] == 'Cajas de Seguridad']['CANTIDAD'].sum())
+                total_cartuchera = int(df_eq[df_eq['EQUIPO'] == 'Funda de Pistolas']['CANTIDAD'].sum())
                 total_porta = int(df_eq[df_eq['EQUIPO'] == 'Porta Cacerinas']['CANTIDAD'].sum())
-                total_fotochecks = int(df_eq[df_eq['EQUIPO'] == 'Fotocheck Liderman']['CANTIDAD'].sum())
+                total_fotochecks = int(df_eq[df_eq['EQUIPO'] == 'Fotochecks']['CANTIDAD'].sum())
 
                 import streamlit.components.v1 as components
                 holo1, holo2, holo3 = st.columns(3)
