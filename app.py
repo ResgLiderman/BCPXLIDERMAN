@@ -7,7 +7,7 @@ from st_aggrid import AgGrid, GridOptionsBuilder
 from streamlit_echarts import st_echarts
 from datetime import datetime
 from streamlit_lottie import st_lottie
-from supabase import create_client, Client # <-- NUEVA INTEGRACIÓN NÚCLEO
+from supabase import create_client, Client 
 
 def cargar_img_local(ruta):
     try:
@@ -43,12 +43,8 @@ button[kind="header"] {
 </style>
 """, unsafe_allow_html=True)
 
-# ==========================================
-# 1. CONFIGURACIÓN DEL CENTRO DE MANDO (PALANTIR STYLE)
-# ==========================================
 st.set_page_config(page_title="BCP Command Center | Operaciones", page_icon=cargar_img_local("BCPLOGO.png"), layout="wide", initial_sidebar_state="expanded")
 
-# Inyección de CSS de Alta Gama Corporativa
 st.markdown("""
 <style>
     .stApp { background-color: #F8FAFC; }
@@ -84,10 +80,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ==========================================
-# 2. MOTOR SUPABASE & SISTEMA HÍBRIDO (DATA LAKE)
-# ==========================================
-# Inicializar Supabase encriptado desde st.secrets
 @st.cache_resource(show_spinner=False)
 def init_supabase() -> Client:
     try:
@@ -105,7 +97,6 @@ def cargar_datos():
     sheet_id = "1Cs3cV-NdVC6u1sDVhWEKpoP2OvDldzpWVIvx8bf-OSc"
     base_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid="
     
-    # 1. ELIMINAMOS EQUIPAMIENTO DE GOOGLE SHEETS
     gids = {
         'doc_sucamec': '2135347375', 'lic_sucamec': '371955966',
         'capa': '1864610226', 'tiro': '1062108520', 'maniobra': '495125468',
@@ -114,7 +105,6 @@ def cargar_datos():
     
     dfs = {}
     
-    # 2. EXTRACCIÓN PURA Y DIRECTA DE SUPABASE
     try:
         respuesta = supabase.table('equipamiento').select('*').execute()
         df_supa = pd.DataFrame(respuesta.data)
@@ -126,7 +116,6 @@ def cargar_datos():
     except Exception as e:
         dfs['equipamiento'] = pd.DataFrame(columns=['RESGUARDO', 'EQUIPO', 'CANTIDAD'])
 
-    # 3. EXTRACCIÓN DEL RESTO EN SHEETS
     for nombre, gid in gids.items():
         try:
             df = pd.read_csv(base_url + gid, header=1)
@@ -159,9 +148,6 @@ dfs = cargar_datos()
 coordinador = "CASTRO MAMANI, VICTOR"
 lista_resguardos = dfs['emo']['RESGUARDO'].dropna().unique().tolist() if 'emo' in dfs and not dfs['emo'].empty else []
 
-# ==========================================
-# 3. SISTEMA DE FILTRADO TÁCTICO (SIDEBAR)
-# ==========================================
 st.sidebar.markdown('<div style="text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/0/0d/Logo-bcp-vector.svg" width="180"></div>', unsafe_allow_html=True)
 st.sidebar.markdown("---")
 st.sidebar.title("⚙️ Filtro Operativo")
@@ -186,9 +172,6 @@ def obtener_nota_segura(hoja):
     notas = pd.to_numeric(df_temp['PROMEDIO'], errors='coerce').dropna()
     return notas.mean() if not notas.empty else 0.0
 
-# ==========================================
-# 4. VISTA DE DOSSIER EJECUTIVO (MODAL INTEGRADO)
-# ==========================================
 if resguardo_seleccionado != "Todos":
     nota_t = obtener_nota_segura('tiro')
     nota_m = obtener_nota_segura('maniobra')
@@ -243,9 +226,6 @@ if resguardo_seleccionado != "Todos":
     
     st.markdown("---")
 
-# ==========================================
-# 5. DASHBOARD GLOBAL Y KPIs
-# ==========================================
 df_emo = filtrar_df(dfs.get('emo', pd.DataFrame()))
 df_suc = filtrar_df(dfs.get('doc_sucamec', pd.DataFrame()))
 
@@ -266,9 +246,6 @@ with k4: st.markdown(f'<div class="kpi-card"><div class="kpi-title">{etiq_kpi} T
 with k5: st.markdown(f'<div class="kpi-card"><div class="kpi-title">{etiq_kpi} Maniobra</div><div class="kpi-value">{nota_maniobra:.1f}</div><div class="kpi-desc {"bg-red" if nota_maniobra < 15.0 else "bg-green"}">Táctico</div></div>', unsafe_allow_html=True)
 with k6: st.markdown(f'<div class="kpi-card"><div class="kpi-title">{etiq_kpi} Físico</div><div class="kpi-value">{nota_fisico:.1f}</div><div class="kpi-desc {"bg-red" if nota_fisico < 15.0 else "bg-green"}">Táctico</div></div>', unsafe_allow_html=True)
 
-# ==========================================
-# 6. CENTRO DE CONTROL (TABS)
-# ==========================================
 tab1, tab2, tab3, tab4 = st.tabs(["🎯 Panel Táctico", "⚖️ Legal & RRHH", "📦 Logística", "🎓 Capacitaciones"])
 
 with tab1:
@@ -328,7 +305,12 @@ with tab1:
                      color='ESTADO', color_discrete_map={'Riesgo (<15.0)': '#d9534f', 'Óptimo': '#002A8D', 'Benchmark': '#94A3B8'})
         fig.add_hline(y=15, line_dash="dash", line_color="#D97706")
         fig.update_traces(textangle=0, textposition='outside') # <-- BLOQUEO VERTICAL DE NÚMEROS APLICADO
-        fig.update_layout(showlegend=False, yaxis_range=[0, 24])
+        fig.update_layout(
+            showlegend=False, 
+            yaxis_range=[0, 24],
+            xaxis=dict(tickangle=-35, tickfont=dict(size=10)),
+            margin=dict(b=120)
+        )
         return fig
 
     with c1:
@@ -393,9 +375,7 @@ with tab3:
             df_eq['CANTIDAD'] = pd.to_numeric(df_eq['CANTIDAD'], errors='coerce').fillna(0)
             
             if resguardo_seleccionado != "Todos":
-                # ==========================================
-                # MODO 1: ESCÁNER BIOMÉTRICO INDIVIDUAL
-                # ==========================================
+
                 df_indiv = df_eq[df_eq['RESGUARDO'] == resguardo_seleccionado]
                 
                 if not df_indiv.empty:
@@ -415,9 +395,7 @@ with tab3:
                     st.info("💡 Operador táctico sin equipo asignado en la bóveda.")
                     
             else:
-                # ==========================================
-                # MODO 2: PANEL DE COMANDO CORPORATIVO
-                # ==========================================
+
                 c1, c2 = st.columns([1, 1.3])
                 
                 with c1:
@@ -455,9 +433,6 @@ with tab3:
 
                 st.markdown("<hr style='border-color: #E2E8F0; margin: 40px 0;'>", unsafe_allow_html=True)
 
-                # ========================================================
-                # CÁPSULAS 2D LEVITANTES (BLINDADAS CON COMPONENTS.HTML)
-                # ========================================================
                 total_glock = int(df_eq[df_eq['EQUIPO'] == 'Glock 19']['CANTIDAD'].sum())
                 total_cacerinas = int(df_eq[df_eq['EQUIPO'] == 'Cacerinas 9MM']['CANTIDAD'].sum())
                 total_cartuchos = int(df_eq[df_eq['EQUIPO'] == 'Munición 9MM PB']['CANTIDAD'].sum())
@@ -510,10 +485,6 @@ with tab3:
                     components.html(render_2d_capsule(cargar_img_local("maletin_limpio.png"), total_caja, "#00E5FF"), height=270)
                     
                 st.markdown("<br><br>", unsafe_allow_html=True)
-
-                # ========================================================
-                # MODAL DE DESGLOSE (TABS NATIVAS - RENDIMIENTO 100%)
-                # ========================================================
                 
                 def render_item(url_img, count, name, color):
                     return f"""
@@ -592,7 +563,11 @@ with tab4:
         
         if resguardo_seleccionado == "Todos":
             fig_capa = px.bar(avance, x='RESGUARDO', y='% Cumplido', title="Avance de Capacitaciones (%)", color='% Cumplido', color_continuous_scale=['#FF7A00', '#002A8D'])
-            fig_capa.update_layout(yaxis_range=[0, 115])
+            fig_capa.update_layout(
+                yaxis_range=[0, 115],
+                xaxis=dict(tickangle=-35, tickfont=dict(size=10)),
+                margin=dict(b=120)
+            )
             fig_capa.update_traces(textangle=0, textposition='outside')
             st.plotly_chart(fig_capa, use_container_width=True)
         else:
