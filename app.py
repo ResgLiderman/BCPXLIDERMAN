@@ -348,23 +348,31 @@ with tab2:
     v1, v2 = st.columns(2)
     with v1:
         if 'emo' in dfs and not dfs['emo'].empty:
-            df_emo_ind = filtrar_df(dfs['emo'])
-            st.markdown("**🩺 Control Médico EMO**")
-            if not df_emo_ind.empty and 'DÍAS RESTANTES' in df_emo_ind.columns:
-                dias_restantes = int(df_emo_ind['DÍAS RESTANTES'].iloc[0])
-                color_badge = "bg-red" if dias_restantes < 30 else "bg-green"
-                estado_texto = "CRÍTICO - VENCE PRONTO" if dias_restantes < 30 else "VIGENTE"
-                
-                st.markdown(f"""
-                <div style="background: linear-gradient(145deg, #0F172A, #1E293B); padding: 30px; border-radius: 12px; text-align: center; border: 1px solid {'#DC2626' if dias_restantes < 30 else '#10B981'};">
-                    <div style="color: #94A3B8; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 10px;">VENCIMIENTO DE EXAMEN MÉDICO (EMO)</div>
-                    <div style="color: {'#DC2626' if dias_restantes < 30 else '#10B981'}; font-size: 3.5rem; font-weight: 900; font-family: 'Courier New', Courier, monospace;">{dias_restantes}</div>
-                    <div style="color: #F8FAFC; font-size: 1rem; font-weight: 600; margin-top: 5px;">Días Restantes</div>
-                    <div style="margin-top: 15px;"><span class="{color_badge}" style="padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">{estado_texto}</span></div>
-                </div>
-                """, unsafe_allow_html=True)
+            if resguardo_seleccionado == "Todos":
+                df_plot = filtrar_df(dfs['emo']).sort_values('DÍAS RESTANTES').head(10)
+                fig1 = px.bar(df_plot, x='DÍAS RESTANTES', y='RESGUARDO', orientation='h', title="Top Vencimientos EMO",  
+                              color=['Crítico' if x<30 else 'Vigente' for x in df_plot['DÍAS RESTANTES']],
+                              color_discrete_map={'Crítico': '#d9534f', 'Vigente': '#002A8D'})
+                fig1.add_vline(x=30, line_dash="solid", line_color="black")
+                st.plotly_chart(fig1, use_container_width=True)
             else:
-                st.info("Sin registros EMO para este operador.")
+                df_emo_ind = filtrar_df(dfs['emo'])
+                st.markdown("**🩺 Control Médico EMO**")
+                if not df_emo_ind.empty and 'DÍAS RESTANTES' in df_emo_ind.columns:
+                    dias_restantes = int(df_emo_ind['DÍAS RESTANTES'].iloc[0])
+                    color_badge = "bg-red" if dias_restantes < 30 else "bg-green"
+                    estado_texto = "CRÍTICO - VENCE PRONTO" if dias_restantes < 30 else "VIGENTE"
+                    
+                    st.markdown(f"""
+                    <div style="background: linear-gradient(145deg, #0F172A, #1E293B); padding: 30px; border-radius: 12px; text-align: center; border: 1px solid {'#DC2626' if dias_restantes < 30 else '#10B981'};">
+                        <div style="color: #94A3B8; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 10px;">VENCIMIENTO DE EXAMEN MÉDICO (EMO)</div>
+                        <div style="color: {'#DC2626' if dias_restantes < 30 else '#10B981'}; font-size: 3.5rem; font-weight: 900; font-family: 'Courier New', Courier, monospace;">{dias_restantes}</div>
+                        <div style="color: #F8FAFC; font-size: 1rem; font-weight: 600; margin-top: 5px;">Días Restantes</div>
+                        <div style="margin-top: 15px;"><span class="{color_badge}" style="padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">{estado_texto}</span></div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.info("Sin registros EMO para este operador.")
             
     with v2:
         if 'vacaciones' in dfs and not dfs['vacaciones'].empty:
