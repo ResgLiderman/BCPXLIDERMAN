@@ -363,25 +363,14 @@ with tab2:
             
     with v2:
         if 'vacaciones' in dfs and not dfs['vacaciones'].empty:
-            if resguardo_seleccionado == "Todos":
-                st.markdown("""
-                <div style="background: linear-gradient(145deg, #1E293B, #0F172A); padding: 30px; border-radius: 16px; border-left: 6px solid #00E5FF; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-                    <h5 style="color: #94A3B8; text-transform: uppercase; letter-spacing: 2px; font-size: 0.85rem; margin-bottom: 10px;">🌴 Estatus de Vacaciones y Descansos</h5>
-                    <h2 style="color: #F8FAFC; font-size: 2.2rem; margin: 0; font-weight: 800;">Operatividad Regular</h2>
-                    <p style="color: #00E5FF; font-weight: 600; font-size: 1rem; margin-top: 10px;">Sin afectación crítica en la cobertura de turno por descanso vacacional.</p>
-                    <hr style="border-color: #334155; margin: 20px 0;">
-                    <p style="color: #CBD5E1; font-size: 0.85rem; line-height: 1.5;">El personal se encuentra cumpliendo su programación habitual sin cruces de dotación en campo.</p>
-                </div>
-                """, unsafe_allow_html=True)
+            st.markdown("**🌴 Control de Vacaciones por Periodo**")
+            df_vac = filtrar_df(dfs['vacaciones'])
+            
+            # Limpiamos columnas innecesarias o vacías si las hay y mostramos la tabla completa del periodo
+            if not df_vac.empty:
+                st.dataframe(df_vac, use_container_width=True, hide_index=True)
             else:
-                st.markdown("**🌴 Registro de Vacaciones (RRHH)**")
-                df_vac = filtrar_df(dfs['vacaciones'])
-                cols_seguras = [c for c in ['RESGUARDO', 'OBSERVACIÓN', 'OBS'] if c in df_vac.columns]
-                
-                if cols_seguras:
-                    st.dataframe(df_vac[cols_seguras], use_container_width=True, hide_index=True)
-                else:
-                    st.dataframe(df_vac, use_container_width=True, hide_index=True)
+                st.info("Sin registros de vacaciones disponibles.")
 
 with tab3:    
     if 'equipamiento' in dfs and not dfs['equipamiento'].empty:
