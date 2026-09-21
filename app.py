@@ -22,6 +22,27 @@ def cargar_animacion_hacker(url: str):
         return None
     return r.json()
 
+st.markdown("""
+<style>
+/* Oculta la notificación molesta de "Running..." en la esquina superior */
+[data-testid="stStatusWidget"] {
+    visibility: hidden;
+    display: none;
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<style>
+/* Oculta el menú de despliegue principal de Streamlit (los 3 puntos) */
+#MainMenu {visibility: hidden;}
+
+/* Oculta los botones de la derecha: Fork, GitHub y menú superior */
+header [data-testid="stToolbar"] {visibility: hidden;}
+header .viewerBadge_container__1QSob {visibility: hidden;}
+</style>
+""", unsafe_allow_html=True)
+
 # ==========================================
 # 1. CONFIGURACIÓN DEL CENTRO DE MANDO (PALANTIR STYLE)
 # ==========================================
