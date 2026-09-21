@@ -269,22 +269,26 @@ with tab1:
         }).reset_index()
         
         df_panel['PROM. GLOBAL'] = df_panel['PROMEDIO'].round(2)
-        df_aggrid = df_panel[['RESGUARDO', 'PROM. GLOBAL', 'OBSERVACIÓN']].copy()
+        df_tabla = df_panel[['RESGUARDO', 'PROM. GLOBAL', 'OBSERVACIÓN']].copy()
         
-        # Separamos en texto plano para evitar que los emojis rompan el ordenamiento de AgGrid
-        df_aggrid['ESTADO'] = ['ALERTA TÁCTICA' if x < 15.0 else 'APTO' for x in df_aggrid['PROM. GLOBAL']]
+        # Recuperamos los indicadores visuales limpios que te gustan
+        df_tabla['ESTADO'] = ['🔴 ALERTA TÁCTICA' if x < 15.0 else '🟢 APTO' for x in df_tabla['PROM. GLOBAL']]
         
-        gb = GridOptionsBuilder.from_dataframe(df_aggrid)
-        gb.configure_pagination(paginationAutoPageSize=True)
-        gb.configure_side_bar() 
-        gb.configure_default_column(groupable=True, value=True, enableRowGroup=True, aggFunc='sum', editable=False, filter=True)
-        gb.configure_column("RESGUARDO", width=250, pinned="left")
-        gb.configure_column("PROM. GLOBAL", type=["numericColumn"], width=130)
-        gb.configure_column("OBSERVACIÓN", width=400)
-        gb.configure_column("ESTADO", width=150)
+        # Reordenamos columnas para que se vea estético
+        df_tabla = df_tabla[['RESGUARDO', 'PROM. GLOBAL', 'ESTADO', 'OBSERVACIÓN']]
         
-        gridOptions = gb.build()
-        AgGrid(df_aggrid, gridOptions=gridOptions, enable_enterprise_modules=False, theme="balham", height=350, fit_columns_on_grid_load=True)
+        # Usamos el dataframe nativo de Streamlit: Cero errores, ordenamiento perfecto y súper elegante
+        st.dataframe(
+            df_tabla, 
+            use_container_width=True, 
+            hide_index=True,
+            column_config={
+                "RESGUARDO": st.column_config.TextColumn("RESGUARDO", width="medium"),
+                "PROM. GLOBAL": st.column_config.NumberColumn("PROM. GLOBAL", format="%.2f / 20"),
+                "ESTADO": st.column_config.TextColumn("ESTADO", width="small"),
+                "OBSERVACIÓN": st.column_config.TextColumn("OBSERVACIÓN", width="large")
+            }
+        )
 
     st.markdown("---")
     c1, c2, c3 = st.columns(3)
