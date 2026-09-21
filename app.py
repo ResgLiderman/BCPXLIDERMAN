@@ -337,49 +337,89 @@ with tab2:
             else:
                 st.dataframe(df_vac, use_container_width=True, hide_index=True)
 
-with tab3:
-    st.markdown("**📦 Módulo Logístico y Control de Activos (Motor Supabase)**")
-    
+with tab3:    
     if 'equipamiento' in dfs and not dfs['equipamiento'].empty:
         df_eq = dfs['equipamiento'].copy().dropna(subset=['EQUIPO'])
         
         # MOTOR INTELIGENTE: Detectar Base de Datos
         if 'RESGUARDO' in df_eq.columns:
+            # Aseguramos formato numérico
+            df_eq['CANTIDAD'] = pd.to_numeric(df_eq['CANTIDAD'], errors='coerce').fillna(0)
+            
             if resguardo_seleccionado != "Todos":
-                df_eq = df_eq[df_eq['RESGUARDO'] == resguardo_seleccionado]
+                # ==========================================
+                # MODO 1: ESCÁNER BIOMÉTRICO INDIVIDUAL
+                # ==========================================
+                df_indiv = df_eq[df_eq['RESGUARDO'] == resguardo_seleccionado]
                 
-            if not df_eq.empty:
-                # 1. TARJETA KPI LOGÍSTICA BCP
-                # Aseguramos que la cantidad sea numérica para poder sumarla
-                df_eq['CANTIDAD'] = pd.to_numeric(df_eq['CANTIDAD'], errors='coerce').fillna(0)
-                total_activos = df_eq['CANTIDAD'].sum()
-                
-                st.markdown(f"""
-                <div style="background: linear-gradient(90deg, #002A8D 0%, #0F172A 100%); padding: 15px 25px; border-radius: 8px; color: white; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #10B981;">
-                    <h4 style="margin:0; color: #F8FAFC; font-weight: 400; font-size: 1.1rem;">
-                        Total de Activos Desplegados: <span style="font-size: 1.6em; font-weight: 800; color: #10B981; margin-left: 10px;">{int(total_activos)}</span> <span style="font-size: 0.9em; color: #94A3B8;">unidades operativas</span>
-                    </h4>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # 2. MATRIZ INTERACTIVA ESTILO BI (Ag-Grid)
-                st.markdown("<p style='color: #64748B; font-size: 0.9rem;'><i>* Arrastra la columna 'RESGUARDO' o 'EQUIPO' al área superior de la tabla para agrupar dinámicamente.</i></p>", unsafe_allow_html=True)
-                
-                gb_eq = GridOptionsBuilder.from_dataframe(df_eq[['RESGUARDO', 'EQUIPO', 'CANTIDAD']])
-                gb_eq.configure_pagination(paginationAutoPageSize=True)
-                gb_eq.configure_default_column(groupable=True, value=True, enableRowGroup=True, filter=True, sortable=True)
-                gb_eq.configure_column("RESGUARDO", width=250, header_name="OPERADOR TÁCTICO")
-                gb_eq.configure_column("EQUIPO", width=200, header_name="TIPO DE ACTIVO")
-                gb_eq.configure_column("CANTIDAD", type=["numericColumn"], width=120, header_name="VOL.")
-                
-                gridOptions_eq = gb_eq.build()
-                AgGrid(df_eq[['RESGUARDO', 'EQUIPO', 'CANTIDAD']], gridOptions=gridOptions_eq, enable_enterprise_modules=False, theme="balham", height=300, fit_columns_on_grid_load=True)
-                
+                if not df_indiv.empty:
+                    st.markdown(f"<h4 style='color: #002A8D; border-bottom: 2px solid #FF7A00; padding-bottom: 10px; margin-bottom: 20px;'>🛡️ Escáner Logístico: {resguardo_seleccionado}</h4>", unsafe_allow_html=True)
+                    
+                    cols = st.columns(min(len(df_indiv), 4)) # Crea columnas dinámicas
+                    for i, row in enumerate(df_indiv.itertuples()):
+                        col_idx = i % 4
+                        with cols[col_idx]:
+                            # Diseño de Tarjeta Holográfica "Jarvis"
+                            st.markdown(f"""
+                            <div style="background: linear-gradient(145deg, #0F172A, #1E293B); 
+                                        border: 1px solid #10B981; 
+                                        border-radius: 12px; 
+                                        padding: 30px 10px; 
+                                        text-align: center; 
+                                        box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+                                        margin-bottom: 15px;">
+                                <div style="color: #94A3B8; font-size: 0.75rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 10px;">ACTIVO ASIGNADO</div>
+                                <h3 style="color: #10B981; font-size: 3.5rem; font-family: 'Courier New', Courier, monospace; margin: 0; text-shadow: 0 0 15px #10B981;">{int(row.CANTIDAD)}</h3>
+                                <p style="color: #F8FAFC; font-size: 1.1rem; font-weight: 600; margin-top: 15px; text-transform: uppercase;">{row.EQUIPO}</p>
+                            </div>
+                            """, unsafe_allow_html=True)
+                else:
+                    st.info("💡 Operador táctico sin equipo asignado en la bóveda.")
+                    
             else:
-                st.info("💡 Este resguardo no tiene armamento ni equipos asignados en la bóveda actual.")
+                # ==========================================
+                # MODO 2: VISIÓN GLOBAL (DASHBOARD BI EJECUTIVO)
+                # ==========================================
+                c1, c2 = st.columns([1, 1.3])
                 
+                with c1:
+                    total_activos = df_eq['CANTIDAD'].sum()
+                    st.markdown(f"""
+                    <div style="background-color: #0F172A; padding: 40px 30px; border-radius: 16px; border-left: 6px solid #FF7A00; box-shadow: 0 10px 25px rgba(0,0,0,0.1); height: 100%;">
+                        <h5 style="color: #94A3B8; text-transform: uppercase; letter-spacing: 2px; font-size: 0.9rem; margin-bottom: 20px;">Red Logística Activa</h5>
+                        <h1 style="color: #F8FAFC; font-size: 5rem; margin: 0; line-height: 1;">{int(total_activos)}</h1>
+                        <p style="color: #FF7A00; font-weight: 600; font-size: 1.1rem; margin-top: 10px; text-transform: uppercase;">Unidades Desplegadas</p>
+                        <hr style="border-color: #334155; margin: 25px 0;">
+                        <p style="color: #CBD5E1; font-size: 0.85rem; line-height: 1.6;">Conexión de alta seguridad. Telemetría actualizándose en tiempo real desde el servidor central (São Paulo).</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                with c2:
+                    st.markdown("<h4 style='color: #002A8D; text-align: center; font-weight: 800; margin-bottom: -10px;'>Distribución del Arsenal</h4>", unsafe_allow_html=True)
+                    df_agrupado = df_eq.groupby('EQUIPO')['CANTIDAD'].sum().reset_index()
+                    
+                    # Gráfico de torta interactivo BI con % dinámicos
+                    fig = px.pie(df_agrupado, values='CANTIDAD', names='EQUIPO', hole=0.65,
+                                 color_discrete_sequence=['#002A8D', '#FF7A00', '#10B981', '#0F172A'])
+                    
+                    fig.update_traces(
+                        textposition='outside', 
+                        textinfo='percent+label',
+                        hovertemplate='<b>%{label}</b><br>Volumen: %{value} unidades<br>Participación: %{percent}',
+                        marker=dict(line=dict(color='#F8FAFC', width=2))
+                    )
+                    
+                    fig.update_layout(
+                        margin=dict(t=30, b=20, l=20, r=20),
+                        showlegend=False,
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        annotations=[dict(text=f"Total<br><b style='font-size:24px; color:#002A8D;'>{int(total_activos)}</b>", x=0.5, y=0.5, font_size=14, showarrow=False)]
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+
         else:
-            # LÓGICA ANTIGUA (Fallback a Google Sheets)
+            # Fallback Google Sheets
             cols_resguardos = [c for c in df_eq.columns if ',' in str(c) and c != coordinador]
             if resguardo_seleccionado != "Todos" and resguardo_seleccionado in df_eq.columns:
                 st.dataframe(df_eq[['CANTIDAD', 'EQUIPO', resguardo_seleccionado]], hide_index=True, use_container_width=True)
