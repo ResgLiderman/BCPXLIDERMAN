@@ -380,7 +380,7 @@ with tab3:
                 df_indiv = df_eq[df_eq['RESGUARDO'] == resguardo_seleccionado]
                 
                 if not df_indiv.empty:
-                    st.markdown(f"<h4 style='color: #002A8D; border-bottom: 2px solid #FF7A00; padding-bottom: 10px; margin-bottom: 20px;'>Dotación EPP Asignado: {resguardo_seleccionado}</h4>", unsafe_allow_html=True)
+                    st.markdown(f"<h4 style='color: #002A8D; border-bottom: 2px solid #FF7A00; padding-bottom: 10px; margin-bottom: 20px;'>Dotación EPP Asignada: {resguardo_seleccionado}</h4>", unsafe_allow_html=True)
                     cols = st.columns(min(len(df_indiv), 4))
                     for i, row in enumerate(df_indiv.itertuples()):
                         col_idx = i % 4
@@ -505,7 +505,7 @@ with tab3:
                     </div>
                     """
 
-                st.markdown("<h3 style='text-align: center; color: #002A8D; font-weight: 900; text-transform: uppercase; margin-bottom: 20px;'> Panel de Operativo</h3>", unsafe_allow_html=True)
+                st.markdown("<h3 style='text-align: center; color: #002A8D; font-weight: 900; text-transform: uppercase; margin-bottom: 20px;'>Inventario y Dotación</h3>", unsafe_allow_html=True)
                 
                 tab_arm, tab_prot, tab_acc = st.tabs(["ARMAMENTO", "PROTECCIÓN", "ACCESORIOS"])
                 
@@ -535,7 +535,7 @@ with tab3:
                     with i2:
                         st.markdown(render_item("https://rimage.ripley.com.pe/home.ripley/Attachment/WOP/1/2065374062748/image2-2065374062748.webp", total_celular, "Teléfonos Móviles", "#00E5FF"), unsafe_allow_html=True)
                     with i3:
-                        st.markdown(render_item("https://images-na.ssl-images-amazon.com/images/I/61PkrqWoOaL._AC_UL495_SR435,495_.jpg", total_cartuchera, "Funda de Pistolas", "#00E5FF"), unsafe_allow_html=True)
+                        st.markdown(render_item("https://images-na.ssl-images-amazon.com/images/I/61PkrqWoOaL._AC_UL495_SR435,495_.jpg", total_cartuchera, "Funda para Pistolas", "#00E5FF"), unsafe_allow_html=True)
                     
                     st.markdown("<br>", unsafe_allow_html=True)
                     _, i4, i5, _ = st.columns([0.5, 1, 1, 0.5])
