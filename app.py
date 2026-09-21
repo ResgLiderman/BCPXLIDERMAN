@@ -340,10 +340,12 @@ with tab2:
             with emo_col1:
                 df_plot = filtrar_df(dfs['emo']).sort_values('DÍAS RESTANTES').head(10)
                 fig1 = px.bar(df_plot, x='DÍAS RESTANTES', y='RESGUARDO', orientation='h', title="Top Vencimientos EMO (Días)",  
+                              text_auto=True,
                               color=['Crítico' if x<30 else 'Vigente' for x in df_plot['DÍAS RESTANTES']],
                               color_discrete_map={'Crítico': '#d9534f', 'Vigente': '#002A8D'})
                 fig1.add_vline(x=30, line_dash="solid", line_color="black")
-                fig1.update_layout(showlegend=False, margin=dict(t=40, b=20, l=20, r=20))
+                fig1.update_traces(textposition='outside')
+                fig1.update_layout(showlegend=False, margin=dict(t=40, b=20, l=20, r=40))
                 st.plotly_chart(fig1, use_container_width=True)
                 
             with emo_col2:
