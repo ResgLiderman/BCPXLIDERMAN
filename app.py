@@ -429,28 +429,33 @@ with tab3:
                 case_id = "df55b96425664a039609d2cf4f99b932" 
                 params = "?autostart=1&ui_controls=0&ui_infos=0&ui_inspector=0&ui_stop=0&ui_theme=dark&ui_watermark=0&transparent=1"
 
-                def render_3d_capsule(model_id, main_count, color, scale="100%", top_offset="-50px", extra_css=""):
-                    # Se ajustó el iFrame a 200% de ancho para que no corte los modelos
+                def render_3d_capsule(model_id, main_count, color, iframe_size="800px", scale="0.45", extra_css=""):
+                    # TRUCO CSS: Un contenedor gigante (iframe_size) empuja los botones de Sketchfab hacia los bordes extremos. 
+                    # Al aplicar 'scale', el modelo se encoge, pero la interfaz basura queda oculta fuera del círculo visible (250px).
                     return f"""
-                    <div style="width: 250px; height: 250px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(30,41,59,1) 75%); border: 4px solid {color}; margin: 0 auto; position: relative; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 35px {color}60; overflow: hidden;">
-                        <iframe src="https://sketchfab.com/models/{model_id}/embed{params}" style="position: absolute; top: {top_offset}; left: -50%; width: 200%; height: 350px; border: none; pointer-events: auto; transform: scale({scale}); {extra_css}" allow="autoplay; fullscreen; xr-spatial-tracking"></iframe>
-                        <div style="position: absolute; bottom: 15px; color: #F8FAFC; font-weight: 900; font-size: 3.5rem; font-family: 'Courier New', Courier, monospace; line-height: 1; text-shadow: 0 0 20px {color}; z-index: 10;">{main_count}</div>
+                    <div style="width: 250px; height: 250px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(30,41,59,1) 75%); border: 4px solid {color}; margin: 0 auto; position: relative; box-shadow: 0 0 35px {color}60; overflow: hidden;">
+                        <div style="position: absolute; width: {iframe_size}; height: {iframe_size}; top: 50%; left: 50%; transform: translate(-50%, -50%) scale({scale}); pointer-events: auto;">
+                            <iframe src="https://sketchfab.com/models/{model_id}/embed{params}" style="width: 100%; height: 100%; border: none; {extra_css}" allow="autoplay; fullscreen; xr-spatial-tracking"></iframe>
+                        </div>
+                        <div style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); color: #F8FAFC; font-weight: 900; font-size: 3.5rem; font-family: 'Courier New', Courier, monospace; line-height: 1; text-shadow: 0 0 20px {color}; z-index: 10; pointer-events: none;">{main_count}</div>
                     </div>
                     """
 
+                # 1. ARMAMENTO
                 with holo1:
                     st.markdown("<h3 style='text-align: center; color: #10B981; font-weight: 900; letter-spacing: 2px;'>ARMAMENTO</h3>", unsafe_allow_html=True)
-                    # Glock escalada a 0.45 para que se vea perfecta y completa
-                    components.html(render_3d_capsule(glock_id, total_glock, "#10B981", scale="0.45", top_offset="-50px"), height=270)
+                    components.html(render_3d_capsule(glock_id, total_glock, "#10B981", iframe_size="800px", scale="0.48"), height=270)
 
+                # 2. PROTECCIÓN TÁCTICA
                 with holo2:
                     st.markdown("<h3 style='text-align: center; color: #FF7A00; font-weight: 900; letter-spacing: 2px;'>PROTECCIÓN</h3>", unsafe_allow_html=True)
-                    # Aplicamos un filtro CSS para que el chaleco camuflado se vea completamente Negro y VIP
-                    components.html(render_3d_capsule(vest_id, total_chaleco, "#FF7A00", scale="0.7", top_offset="-50px", extra_css="filter: grayscale(100%) brightness(0.65);"), height=270)
+                    # El chaleco liso negro con el extra_css
+                    components.html(render_3d_capsule(vest_id, total_chaleco, "#FF7A00", iframe_size="600px", scale="0.75", extra_css="filter: grayscale(100%) brightness(0.65);"), height=270)
 
+                # 3. ACCESORIOS & COMMS
                 with holo3:
                     st.markdown("<h3 style='text-align: center; color: #00E5FF; font-weight: 900; letter-spacing: 2px;'>ACCESORIOS</h3>", unsafe_allow_html=True)
-                    components.html(render_3d_capsule(case_id, total_caja, "#00E5FF", scale="0.7", top_offset="-50px"), height=270)
+                    components.html(render_3d_capsule(case_id, total_caja, "#00E5FF", iframe_size="600px", scale="0.75"), height=270)
 
                 st.markdown("<br>", unsafe_allow_html=True)
 
