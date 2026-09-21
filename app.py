@@ -409,7 +409,7 @@ with tab3:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Cálculos automáticos robustos (ignorando mayúsculas/minúsculas)
+                # Cálculos automáticos robustos
                 try:
                     total_glock = int(df_eq[df_eq['EQUIPO'].str.contains('glock', case=False, na=False)]['CANTIDAD'].sum())
                 except:
@@ -455,7 +455,7 @@ with tab3:
                 st.dataframe(df_eq[['CANTIDAD', 'EQUIPO', resguardo_seleccionado]], hide_index=True, use_container_width=True)
             else:
                 df_eq_vertical = df_eq.melt(id_vars=['EQUIPO', 'CANTIDAD'], value_vars=cols_resguardos, var_name='RESGUARDO', value_name='ASIGNADO')
-                df_eq_vertical = df_eq_vertical[pd.to_numeric(df_eq_vertical['ASIGNADO'], errors='coerce').fillna(0) > 0]
+                df_eq_vertical = df_eq_vertical[pd.to_numeric(df_eq_vertical['ASIGNADO'], errors['coerce']).fillna(0) > 0]
                 st.dataframe(df_eq_vertical[['RESGUARDO', 'CANTIDAD', 'EQUIPO']], hide_index=True, use_container_width=True)
     else:
         st.error("Bóveda de armería vacía o conexión interrumpida.")
