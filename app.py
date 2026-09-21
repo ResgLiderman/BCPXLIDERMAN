@@ -380,7 +380,7 @@ with tab3:
                 df_indiv = df_eq[df_eq['RESGUARDO'] == resguardo_seleccionado]
                 
                 if not df_indiv.empty:
-                    st.markdown(f"<h4 style='color: #002A8D; border-bottom: 2px solid #FF7A00; padding-bottom: 10px; margin-bottom: 20px;'>🛡️ Escáner Logístico: {resguardo_seleccionado}</h4>", unsafe_allow_html=True)
+                    st.markdown(f"<h4 style='color: #002A8D; border-bottom: 2px solid #FF7A00; padding-bottom: 10px; margin-bottom: 20px;'>Dotación EPP Asignado: {resguardo_seleccionado}</h4>", unsafe_allow_html=True)
                     cols = st.columns(min(len(df_indiv), 4))
                     for i, row in enumerate(df_indiv.itertuples()):
                         col_idx = i % 4
@@ -425,7 +425,7 @@ with tab3:
                             <div style="width: 100%; background-color: #10B981; height: 10px; border-radius: 10px; box-shadow: 0 0 10px #10B981;"></div>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <span style="color: #F8FAFC; font-size: 1.2rem; font-weight: 600;">Mantenimiento Técnico</span>
+                            <span style="color: #F8FAFC; font-size: 1.2rem; font-weight: 600;">Mantenimiento Preventivo</span>
                             <span style="color: #FF7A00; font-size: 1.5rem; font-weight: 900;">0%</span>
                         </div>
                         <div style="width: 100%; background-color: #334155; border-radius: 10px; height: 10px;">
@@ -505,7 +505,7 @@ with tab3:
                     </div>
                     """
 
-                st.markdown("<h3 style='text-align: center; color: #002A8D; font-weight: 900; text-transform: uppercase; margin-bottom: 20px;'>⚡ Panel de Desglose Táctico</h3>", unsafe_allow_html=True)
+                st.markdown("<h3 style='text-align: center; color: #002A8D; font-weight: 900; text-transform: uppercase; margin-bottom: 20px;'> Panel de Operativo</h3>", unsafe_allow_html=True)
                 
                 tab_arm, tab_prot, tab_acc = st.tabs(["ARMAMENTO", "PROTECCIÓN", "ACCESORIOS"])
                 
@@ -517,13 +517,13 @@ with tab3:
                     with i2:
                         st.markdown(render_item("https://www.tapperu.com/cdn/shop/files/MGGL33812_1_HR.jpg?v=1754591160", total_cacerinas, "Cacerinas 9MM", "#10B981"), unsafe_allow_html=True)
                     with i3:
-                        st.markdown(render_item("https://www.indumil.gov.co/wp-content/uploads/2024/02/Municion_de_Defensa_Personal_03.png", total_cartuchos, "Cartuchos .38", "#10B981"), unsafe_allow_html=True)
+                        st.markdown(render_item("https://www.indumil.gov.co/wp-content/uploads/2024/02/Municion_de_Defensa_Personal_03.png", total_cartuchos, "Munición 9MM PB", "#10B981"), unsafe_allow_html=True)
                 
                 with tab_prot:
                     st.markdown("<br>", unsafe_allow_html=True)
                     i1, i2 = st.columns(2)
                     with i1:
-                        st.markdown(render_item("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWBTRB7szjQBf8Xg50QUUs8tobt9uNpTeQ9kyrD6DYf2NX0laZjkJ7FNo&s=10", total_chaleco, "Chalecos Antibalas", "#FF7A00"), unsafe_allow_html=True)
+                        st.markdown(render_item("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWBTRB7szjQBf8Xg50QUUs8tobt9uNpTeQ9kyrD6DYf2NX0laZjkJ7FNo&s=10", total_chaleco, "Chalecos Antibalas Ergónomico", "#FF7A00"), unsafe_allow_html=True)
                     with i2:
                         st.markdown(render_item("https://i.ytimg.com/vi/NUfdDG9M_PM/maxresdefault.jpg", total_funda, "Fundas de Chaleco", "#FF7A00"), unsafe_allow_html=True)
                 
@@ -535,7 +535,7 @@ with tab3:
                     with i2:
                         st.markdown(render_item("https://rimage.ripley.com.pe/home.ripley/Attachment/WOP/1/2065374062748/image2-2065374062748.webp", total_celular, "Teléfonos Móviles", "#00E5FF"), unsafe_allow_html=True)
                     with i3:
-                        st.markdown(render_item("https://images-na.ssl-images-amazon.com/images/I/61PkrqWoOaL._AC_UL495_SR435,495_.jpg", total_cartuchera, "Cartucheras", "#00E5FF"), unsafe_allow_html=True)
+                        st.markdown(render_item("https://images-na.ssl-images-amazon.com/images/I/61PkrqWoOaL._AC_UL495_SR435,495_.jpg", total_cartuchera, "Funda de Pistolas", "#00E5FF"), unsafe_allow_html=True)
                     
                     st.markdown("<br>", unsafe_allow_html=True)
                     _, i4, i5, _ = st.columns([0.5, 1, 1, 0.5])
