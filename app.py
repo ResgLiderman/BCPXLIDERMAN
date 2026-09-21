@@ -30,7 +30,7 @@ st.markdown("""
     display: none;
 }
 
-/* Oculta el menú de los 3 puntos y elementos innecesarios, PERO MANTIENE EL BOTÓN DE LA BARRA LATERAL */
+/* Oculta el menú de los 3 puntos y elementos innecesarios */
 #MainMenu {visibility: hidden;}
 header .viewerBadge_container__1QSob {visibility: hidden;}
 
@@ -41,7 +41,7 @@ button[kind="header"] {
     z-index: 999999;
 }
 </style>
-""", unsafe_allow_html=True)}
+""", unsafe_allow_html=True)
 
 # ==========================================
 # 1. CONFIGURACIÓN DEL CENTRO DE MANDO (PALANTIR STYLE)
