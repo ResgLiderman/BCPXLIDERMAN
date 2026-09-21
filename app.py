@@ -376,7 +376,7 @@ with tab3:
                 # ==========================================
                 c1, c2 = st.columns([1, 1.3])
                 
-                # Cuadro 1: Total de Resguardos (Mantenido y optimizado)
+                # Cuadro 1: Total de Resguardos
                 with c1:
                     total_resguardos = df_eq['RESGUARDO'].nunique()
                     st.markdown(f"""
@@ -389,7 +389,7 @@ with tab3:
                     </div>
                     """, unsafe_allow_html=True)
 
-                # Cuadro 2: Estado Operativo (Reemplazo de la Torta de Cartuchos)
+                # Cuadro 2: Estado Operativo
                 with c2:
                     st.markdown(f"""
                     <div style="background: linear-gradient(145deg, #1E293B, #0F172A); padding: 40px 30px; border-radius: 16px; border-top: 6px solid #10B981; box-shadow: 0 10px 25px rgba(0,0,0,0.1); height: 100%;">
@@ -414,10 +414,9 @@ with tab3:
                 st.markdown("<hr style='border-color: #E2E8F0; margin: 40px 0;'>", unsafe_allow_html=True)
 
                 # ========================================================
-                # CÁPSULAS HOLOGRÁFICAS (DISEÑO ALTO CONTRASTE + TÍTULOS EXTERNOS)
+                # CÁPSULAS HOLOGRÁFICAS (ALTO CONTRASTE + TÍTULOS EXTERNOS)
                 # ========================================================
                 
-                # Cálculos exactos
                 total_glock = int(df_eq[df_eq['EQUIPO'] == 'Glock 19']['CANTIDAD'].sum())
                 total_cacerinas = int(df_eq[df_eq['EQUIPO'] == 'Cacerinas']['CANTIDAD'].sum())
                 total_cartuchos = int(df_eq[df_eq['EQUIPO'] == 'Cartuchos .38']['CANTIDAD'].sum())
@@ -429,14 +428,12 @@ with tab3:
                 import streamlit.components.v1 as components
                 holo1, holo2, holo3 = st.columns(3)
                 
-                # IDs de Modelos 3D 
                 glock_id = "57dbcccd1c2d4e7f81662316dfe11e6b" 
-                vest_id = "7da8204c9a7c472fa71653b9c999f1a2" # Chaleco más sobrio/liso
+                vest_id = "7da8204c9a7c472fa71653b9c999f1a2" 
                 case_id = "df55b96425664a039609d2cf4f99b932" 
                 params = "?autostart=1&ui_controls=0&ui_infos=0&ui_inspector=0&ui_stop=0&ui_theme=dark&ui_watermark=0&transparent=1"
 
                 def render_3d_capsule(model_id, main_count, color, scale="100%"):
-                    # Fondo "Spotlight" para dar contraste altísimo a los modelos oscuros
                     return f"""
                     <div style="width: 250px; height: 250px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(30,41,59,1) 75%); border: 4px solid {color}; margin: 0 auto; position: relative; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 35px {color}60; overflow: hidden;">
                         <iframe src="https://sketchfab.com/models/{model_id}/embed{params}" style="position: absolute; top: -50px; left: -10%; width: 120%; height: 350px; border: none; pointer-events: auto; transform: scale({scale});" allow="autoplay; fullscreen; xr-spatial-tracking"></iframe>
@@ -458,7 +455,7 @@ with tab3:
                     if st.button("👁️ DESGLOSAR PROTECCIÓN", key="btn_prot", use_container_width=True):
                         st.session_state.desglose_activo = "Proteccion"
 
-                # 3. ACCESORIOS & COMMS (Aplicamos scale 0.7 para achicar la caja gigante)
+                # 3. ACCESORIOS & COMMS
                 with holo3:
                     st.markdown("<h3 style='text-align: center; color: #00E5FF; font-weight: 900; letter-spacing: 2px;'>ACCESORIOS</h3>", unsafe_allow_html=True)
                     components.html(render_3d_capsule(case_id, total_caja, "#00E5FF", scale="0.7"), height=270)
@@ -467,14 +464,14 @@ with tab3:
 
 
                 # ========================================================
-                # MODAL DE DESGLOSE (EL PANEL TÁCTICO POR CLIC)
+                # MODAL DE DESGLOSE TÁCTICO (ESTILO HUD LIMPIO)
                 # ========================================================
                 if st.session_state.desglose_activo:
                     st.markdown(f"""
-                    <div style="background: rgba(15, 23, 42, 0.95); border: 2px solid #334155; border-radius: 20px; padding: 40px; margin-top: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); backdrop-filter: blur(10px);">
-                        <h2 style="text-align: center; color: #F8FAFC; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 40px;">
-                            DESGLOSE TÁCTICO: {st.session_state.desglose_activo}
-                        </h2>
+                    <div style="background: linear-gradient(145deg, #0F172A, #1E293B); border: 2px solid #334155; border-radius: 16px; padding: 30px; margin-top: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
+                        <h3 style="text-align: center; color: #F8FAFC; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 30px; border-bottom: 2px solid #FF7A00; padding-bottom: 10px;">
+                            📋 Desglose Táctico — {st.session_state.desglose_activo}
+                        </h3>
                     </div>
                     """, unsafe_allow_html=True)
                     
@@ -482,37 +479,30 @@ with tab3:
                     if st.session_state.desglose_activo == "Armamento":
                         i1, i2, i3 = st.columns(3)
                         with i1:
-                            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Glock_19_Gen_4.jpg/800px-Glock_19_Gen_4.jpg", use_container_width=True)
-                            st.markdown(f"<h3 style='text-align: center; color: #10B981;'>{total_glock} Glock 19</h3>", unsafe_allow_html=True)
+                            st.markdown("<div style='text-align: center; background: #0F172A; padding: 25px; border-radius: 12px; border: 1px solid #10B981;'><span style='font-size: 3rem;'>🔫</span><h2 style='color: #10B981; margin-top: 10px;'>{total_glock}</h2><p style='color: #F8FAFC; font-weight: 600;'>Glock 19</p></div>".format(total_glock=total_glock), unsafe_allow_html=True)
                         with i2:
-                            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/9mm_magazine.jpg/400px-9mm_magazine.jpg", use_container_width=True)
-                            st.markdown(f"<h3 style='text-align: center; color: #10B981;'>{total_cacerinas} Cacerinas</h3>", unsafe_allow_html=True)
+                            st.markdown("<div style='text-align: center; background: #0F172A; padding: 25px; border-radius: 12px; border: 1px solid #10B981;'><span style='font-size: 3rem;'>🔋</span><h2 style='color: #10B981; margin-top: 10px;'>{total_cacerinas}</h2><p style='color: #F8FAFC; font-weight: 600;'>Cacerinas</p></div>".format(total_cacerinas=total_cacerinas), unsafe_allow_html=True)
                         with i3:
-                            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/38_Special_rounds.jpg/640px-38_Special_rounds.jpg", use_container_width=True)
-                            st.markdown(f"<h3 style='text-align: center; color: #10B981;'>{total_cartuchos} Balas .38</h3>", unsafe_allow_html=True)
+                            st.markdown("<div style='text-align: center; background: #0F172A; padding: 25px; border-radius: 12px; border: 1px solid #10B981;'><span style='font-size: 3rem;'>📦</span><h2 style='color: #10B981; margin-top: 10px;'>{total_cartuchos}</h2><p style='color: #F8FAFC; font-weight: 600;'>Balas .38</p></div>".format(total_cartuchos=total_cartuchos), unsafe_allow_html=True)
                     
                     # Panel Protección
                     elif st.session_state.desglose_activo == "Proteccion":
                         i1, i2 = st.columns(2)
                         with i1:
-                            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Bulletproof_vest.jpg/640px-Bulletproof_vest.jpg", use_container_width=True)
-                            st.markdown(f"<h3 style='text-align: center; color: #FF7A00;'>{total_chaleco} Chalecos Antibalas</h3>", unsafe_allow_html=True)
+                            st.markdown("<div style='text-align: center; background: #0F172A; padding: 25px; border-radius: 12px; border: 1px solid #FF7A00;'><span style='font-size: 3rem;'>🛡️</span><h2 style='color: #FF7A00; margin-top: 10px;'>{total_chaleco}</h2><p style='color: #F8FAFC; font-weight: 600;'>Chalecos Antibalas</p></div>".format(total_chaleco=total_chaleco), unsafe_allow_html=True)
                         with i2:
-                            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Modular_Tactical_Vest_Front.jpg/640px-Modular_Tactical_Vest_Front.jpg", use_container_width=True)
-                            st.markdown(f"<h3 style='text-align: center; color: #FF7A00;'>{total_funda} Fundas Exteriores</h3>", unsafe_allow_html=True)
+                            st.markdown("<div style='text-align: center; background: #0F172A; padding: 25px; border-radius: 12px; border: 1px solid #FF7A00;'><span style='font-size: 3rem;'>🦺</span><h2 style='color: #FF7A00; margin-top: 10px;'>{total_funda}</h2><p style='color: #F8FAFC; font-weight: 600;'>Fundas Exteriores</p></div>".format(total_funda=total_funda), unsafe_allow_html=True)
                     
                     # Panel Accesorios
                     elif st.session_state.desglose_activo == "Accesorios":
                         i1, i2, i3 = st.columns(3)
                         with i1:
-                            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Pelican_case_open.jpg/640px-Pelican_case_open.jpg", use_container_width=True)
-                            st.markdown(f"<h3 style='text-align: center; color: #00E5FF;'>{total_caja} Cajas Seguridad</h3>", unsafe_allow_html=True)
+                            st.markdown("<div style='text-align: center; background: #0F172A; padding: 25px; border-radius: 12px; border: 1px solid #00E5FF;'><span style='font-size: 3rem;'>🧰</span><h2 style='color: #00E5FF; margin-top: 10px;'>{total_caja}</h2><p style='color: #F8FAFC; font-weight: 600;'>Cajas Seguridad</p></div>".format(total_caja=total_caja), unsafe_allow_html=True)
                         with i2:
-                            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Smartphone_icon_-_Noun_Project_283536.svg/400px-Smartphone_icon_-_Noun_Project_283536.svg.png", use_container_width=True)
-                            st.markdown(f"<h3 style='text-align: center; color: #00E5FF;'>{total_celular} Celulares</h3>", unsafe_allow_html=True)
+                            st.markdown("<div style='text-align: center; background: #0F172A; padding: 25px; border-radius: 12px; border: 1px solid #00E5FF;'><span style='font-size: 3rem;'>📱</span><h2 style='color: #00E5FF; margin-top: 10px;'>{total_celular}</h2><p style='color: #F8FAFC; font-weight: 600;'>Celulares</p></div>".format(total_celular=total_celular), unsafe_allow_html=True)
                         with i3:
-                            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/ID_card_icon.svg/400px-ID_card_icon.svg.png", use_container_width=True)
-                            st.markdown(f"<h3 style='text-align: center; color: #00E5FF;'>{df_eq[df_eq['EQUIPO'] == 'Fotocheck Liderman']['CANTIDAD'].sum()} Fotochecks</h3>", unsafe_allow_html=True)
+                            total_fotochecks = int(df_eq[df_eq['EQUIPO'] == 'Fotocheck Liderman']['CANTIDAD'].sum())
+                            st.markdown("<div style='text-align: center; background: #0F172A; padding: 25px; border-radius: 12px; border: 1px solid #00E5FF;'><span style='font-size: 3rem;'>🪪</span><h2 style='color: #00E5FF; margin-top: 10px;'>{total_fotochecks}</h2><p style='color: #F8FAFC; font-weight: 600;'>Fotochecks</p></div>".format(total_fotochecks=total_fotochecks), unsafe_allow_html=True)
 
         else:
             cols_resguardos = [c for c in df_eq.columns if ',' in str(c) and c != coordinador]
