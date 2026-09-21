@@ -40,6 +40,13 @@ st.markdown("""
 /* Oculta los botones de la derecha: Fork, GitHub y menú superior */
 header [data-testid="stToolbar"] {visibility: hidden;}
 header .viewerBadge_container__1QSob {visibility: hidden;}
+
+/* Forzar que el botón de expandir la barra lateral (sidebar) siempre sea visible y flotante */
+[data-testid="collapsedControl"] {
+    display: block !important;
+    visibility: visible !important;
+    z-index: 999999;
+}
 </style>
 """, unsafe_allow_html=True)
 
