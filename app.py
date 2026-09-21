@@ -349,7 +349,7 @@ with tab2:
     with v1:
         if 'emo' in dfs and not dfs['emo'].empty:
             df_plot = filtrar_df(dfs['emo']).sort_values('DÍAS RESTANTES').head(10)
-            fig1 = px.bar(df_plot, x='DÍAS RESTANTES', y='RESGUARDO', orientation='h', title="Top Vencimientos EMO", 
+            fig1 = px.bar(df_plot, x='DÍAS RESTANTES', y='RESGUARDO', orientation='h', title="Top Vencimientos EMO",  
                           color=['Crítico' if x<30 else 'Vigente' for x in df_plot['DÍAS RESTANTES']],
                           color_discrete_map={'Crítico': '#d9534f', 'Vigente': '#002A8D'})
             fig1.add_vline(x=30, line_dash="solid", line_color="black")
