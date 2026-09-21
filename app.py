@@ -46,7 +46,7 @@ button[kind="header"] {
 # ==========================================
 # 1. CONFIGURACIÓN DEL CENTRO DE MANDO (PALANTIR STYLE)
 # ==========================================
-st.set_page_config(page_title="BCP Command Center | Operaciones", page_icon="🛡️", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="BCP Command Center | Operaciones", page_icon=cargar_img_local("BCPLOGO.png"), layout="wide", initial_sidebar_state="expanded")
 
 # Inyección de CSS de Alta Gama Corporativa
 st.markdown("""
