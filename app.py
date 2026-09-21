@@ -370,11 +370,10 @@ with tab3:
                     
             else:
                 # ==========================================
-                # MODO 2: VISIÓN GLOBAL BI + ARMERÍA HOLOGRÁFICA (JARVIS)
+                # MODO 2: VISIÓN GLOBAL BI + ESCÁNER TÁCTICO
                 # ==========================================
                 c1, c2 = st.columns([1, 1.3])
                 
-                # Panel Oscuro (Izquierda)
                 with c1:
                     total_activos = df_eq['CANTIDAD'].sum()
                     st.markdown(f"""
@@ -387,7 +386,6 @@ with tab3:
                     </div>
                     """, unsafe_allow_html=True)
 
-                # Gráfico de Torta (Derecha)
                 with c2:
                     st.markdown("<h4 style='color: #002A8D; text-align: center; font-weight: 800; margin-bottom: -10px;'>Distribución del Arsenal</h4>", unsafe_allow_html=True)
                     df_agrupado = df_eq.groupby('EQUIPO')['CANTIDAD'].sum().reset_index()
@@ -401,36 +399,54 @@ with tab3:
                     st.plotly_chart(fig, use_container_width=True)
 
                 # ========================================================
-                # INYECCIÓN 3D (ZONA JARVIS) - RENDERIZADO EN TIEMPO REAL
+                # INYECCIÓN NATIVA (ZONA JARVIS BLINDADA - CERO ERRORES)
                 # ========================================================
                 st.markdown("""
                 <div style="margin-top: 40px; margin-bottom: 20px;">
                     <h3 style="color: #002A8D; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; border-bottom: 2px solid #0F172A; padding-bottom: 10px;">
-                        ⚡ Armería Holográfica 3D (Live Rendering)
+                        ⚡ Módulos de Telemetría (Nativo)
                     </h3>
-                    <p style="color: #64748B; font-size: 0.9rem;">Interactúa con el mouse (Click + Arrastrar) para inspeccionar el equipo logístico en 360°.</p>
+                    <p style="color: #64748B; font-size: 0.9rem;">Escaneo holográfico renderizado por hardware local. Sin conexiones externas.</p>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Columnas para los Hologramas
                 holo1, holo2 = st.columns(2)
                 
-                # Cadena de parámetros hackers para limpiar la interfaz del 3D
-                params = "?autostart=1&ui_controls=0&ui_infos=0&ui_inspector=0&ui_stop=0&ui_theme=dark&ui_watermark=0&transparent=1"
-                
                 with holo1:
+                    # RADAR DE ARMAMENTO (CSS PURO)
                     st.markdown(f"""
-                    <div style="background: linear-gradient(145deg, #0F172A, #1E293B); border: 1px solid #10B981; border-radius: 12px; padding: 10px; box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);">
-                        <p style="color: #10B981; font-weight: 800; text-align: center; margin-bottom: 5px; letter-spacing: 3px; font-size: 0.85rem;">GLOCK 19 TÁCTICA</p>
-                        <iframe title="Glock 19" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/01cf8a65eb1a4731a546cdfcde54aefb/embed{params}" height="320" width="100%"> </iframe>
+                    <style>
+                        .radar-box {{ position: relative; width: 180px; height: 180px; border-radius: 50%; border: 2px solid #10B981; background: radial-gradient(circle, rgba(16,185,129,0.05) 0%, rgba(15,23,42,1) 100%); overflow: hidden; margin: 30px auto; box-shadow: 0 0 30px rgba(16,185,129,0.2); }}
+                        .radar-box::before {{ content: ''; position: absolute; top: 50%; left: 50%; width: 100%; height: 100%; background: conic-gradient(from 0deg, transparent 70%, rgba(16,185,129,0.8) 100%); transform-origin: 0 0; animation: scan-radar 2s linear infinite; }}
+                        .grid {{ position: absolute; border: 1px solid rgba(16,185,129,0.3); border-radius: 50%; box-sizing: border-box; }}
+                        .g1 {{ width: 100%; height: 100%; top: 0; left: 0; }} .g2 {{ width: 66%; height: 66%; top: 17%; left: 17%; }} .g3 {{ width: 33%; height: 33%; top: 33.5%; left: 33.5%; }}
+                        .cross {{ position: absolute; background: rgba(16,185,129,0.4); }}
+                        .h-cross {{ width: 100%; height: 1px; top: 50%; left: 0; }} .v-cross {{ height: 100%; width: 1px; left: 50%; top: 0; }}
+                        @keyframes scan-radar {{ 100% {{ transform: rotate(360deg); }} }}
+                    </style>
+                    <div style="background: linear-gradient(145deg, #0F172A, #1E293B); border: 1px solid #10B981; border-radius: 12px; padding: 20px; box-shadow: 0 0 20px rgba(16, 185, 129, 0.2); height: 350px;">
+                        <p style="color: #10B981; font-weight: 800; text-align: center; letter-spacing: 3px; font-size: 0.85rem; margin-top: 10px;">RASTREO: GLOCK 19</p>
+                        <div class="radar-box">
+                            <div class="grid g1"></div><div class="grid g2"></div><div class="grid g3"></div>
+                            <div class="cross h-cross"></div><div class="cross v-cross"></div>
+                        </div>
                     </div>
                     """, unsafe_allow_html=True)
                     
                 with holo2:
+                    # ESCUDO DE DEFENSA (CSS PURO)
                     st.markdown(f"""
-                    <div style="background: linear-gradient(145deg, #0F172A, #1E293B); border: 1px solid #FF7A00; border-radius: 12px; padding: 10px; box-shadow: 0 0 20px rgba(255, 122, 0, 0.2);">
-                        <p style="color: #FF7A00; font-weight: 800; text-align: center; margin-bottom: 5px; letter-spacing: 3px; font-size: 0.85rem;">CHALECO NIVEL III</p>
-                        <iframe title="Tactical Vest" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/fcf6c9ab4c4f42f3a4666f39d1b098b6/embed{params}" height="320" width="100%"> </iframe>
+                    <style>
+                        .shield-box {{ position: relative; width: 140px; height: 170px; background: rgba(255,122,0,0.05); border: 3px solid #FF7A00; border-radius: 10px 10px 50% 50% / 10px 10px 40% 40%; margin: 35px auto; display: flex; justify-content: center; align-items: center; overflow: hidden; box-shadow: 0 0 30px rgba(255,122,0,0.3), inset 0 0 20px rgba(255,122,0,0.2); }}
+                        .shield-box::after {{ content: ''; position: absolute; width: 200%; height: 15px; background: rgba(255,122,0,0.5); top: 0; left: -50%; transform: rotate(-45deg); box-shadow: 0 0 15px #FF7A00; animation: pulse-scan 2.5s infinite linear; }}
+                        .shield-core {{ width: 60px; height: 75px; border: 2px solid rgba(255,122,0,0.6); border-radius: 10px 10px 50% 50% / 10px 10px 40% 40%; }}
+                        @keyframes pulse-scan {{ 0% {{ top: -50px; }} 100% {{ top: 250px; }} }}
+                    </style>
+                    <div style="background: linear-gradient(145deg, #0F172A, #1E293B); border: 1px solid #FF7A00; border-radius: 12px; padding: 20px; box-shadow: 0 0 20px rgba(255, 122, 0, 0.2); height: 350px;">
+                        <p style="color: #FF7A00; font-weight: 800; text-align: center; letter-spacing: 3px; font-size: 0.85rem; margin-top: 10px;">RASTREO: CHALECOS</p>
+                        <div class="shield-box">
+                            <div class="shield-core"></div>
+                        </div>
                     </div>
                     """, unsafe_allow_html=True)
 
