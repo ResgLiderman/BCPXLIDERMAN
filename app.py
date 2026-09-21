@@ -88,7 +88,7 @@ st.markdown("""
 # 2. MOTOR SUPABASE & SISTEMA HÍBRIDO (DATA LAKE)
 # ==========================================
 # Inicializar Supabase encriptado desde st.secrets
-@st.cache_resource
+@st.cache_resource(show_spinner=False)
 def init_supabase() -> Client:
     try:
         url = st.secrets["supabase"]["url"]
@@ -100,7 +100,7 @@ def init_supabase() -> Client:
 
 supabase = init_supabase()
 
-@st.cache_data(ttl=1) # <-- TTL a 1 segundo: MATA LA CACHÉ para ver los datos en tiempo real
+@st.cache_data(ttl=1, show_spinner=False)
 def cargar_datos():
     sheet_id = "1Cs3cV-NdVC6u1sDVhWEKpoP2OvDldzpWVIvx8bf-OSc"
     base_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid="
