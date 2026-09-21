@@ -382,7 +382,7 @@ with tab2:
     st.markdown("<hr style='border-color: #E2E8F0; margin: 40px 0;'>", unsafe_allow_html=True)
     
     # SECCIÓN DE VACACIONES ABAJO
-    st.markdown("<h4 style='color: #002A8D; margin-bottom: 20px;'>🌴 Control de Vacaciones por Periodo</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color: #002A8D; margin-bottom: 20px;'> Control de Vacaciones por Periodo</h4>", unsafe_allow_html=True)
     if 'vacaciones' in dfs and not dfs['vacaciones'].empty:
         df_vac = filtrar_df(dfs['vacaciones'])
         if not df_vac.empty:
