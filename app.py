@@ -343,7 +343,6 @@ with tab3:
         
         # MOTOR INTELIGENTE: Detectar Base de Datos
         if 'RESGUARDO' in df_eq.columns:
-            # Aseguramos formato numérico
             df_eq['CANTIDAD'] = pd.to_numeric(df_eq['CANTIDAD'], errors='coerce').fillna(0)
             
             if resguardo_seleccionado != "Todos":
@@ -355,19 +354,12 @@ with tab3:
                 if not df_indiv.empty:
                     st.markdown(f"<h4 style='color: #002A8D; border-bottom: 2px solid #FF7A00; padding-bottom: 10px; margin-bottom: 20px;'>🛡️ Escáner Logístico: {resguardo_seleccionado}</h4>", unsafe_allow_html=True)
                     
-                    cols = st.columns(min(len(df_indiv), 4)) # Crea columnas dinámicas
+                    cols = st.columns(min(len(df_indiv), 4))
                     for i, row in enumerate(df_indiv.itertuples()):
                         col_idx = i % 4
                         with cols[col_idx]:
-                            # Diseño de Tarjeta Holográfica "Jarvis"
                             st.markdown(f"""
-                            <div style="background: linear-gradient(145deg, #0F172A, #1E293B); 
-                                        border: 1px solid #10B981; 
-                                        border-radius: 12px; 
-                                        padding: 30px 10px; 
-                                        text-align: center; 
-                                        box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
-                                        margin-bottom: 15px;">
+                            <div style="background: linear-gradient(145deg, #0F172A, #1E293B); border: 1px solid #10B981; border-radius: 12px; padding: 30px 10px; text-align: center; box-shadow: 0 0 20px rgba(16, 185, 129, 0.15); margin-bottom: 15px;">
                                 <div style="color: #94A3B8; font-size: 0.75rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 10px;">ACTIVO ASIGNADO</div>
                                 <h3 style="color: #10B981; font-size: 3.5rem; font-family: 'Courier New', Courier, monospace; margin: 0; text-shadow: 0 0 15px #10B981;">{int(row.CANTIDAD)}</h3>
                                 <p style="color: #F8FAFC; font-size: 1.1rem; font-weight: 600; margin-top: 15px; text-transform: uppercase;">{row.EQUIPO}</p>
@@ -378,10 +370,11 @@ with tab3:
                     
             else:
                 # ==========================================
-                # MODO 2: VISIÓN GLOBAL (DASHBOARD BI EJECUTIVO)
+                # MODO 2: VISIÓN GLOBAL BI + ARMERÍA HOLOGRÁFICA (JARVIS)
                 # ==========================================
                 c1, c2 = st.columns([1, 1.3])
                 
+                # Panel Oscuro (Izquierda)
                 with c1:
                     total_activos = df_eq['CANTIDAD'].sum()
                     st.markdown(f"""
@@ -390,33 +383,56 @@ with tab3:
                         <h1 style="color: #F8FAFC; font-size: 5rem; margin: 0; line-height: 1;">{int(total_activos)}</h1>
                         <p style="color: #FF7A00; font-weight: 600; font-size: 1.1rem; margin-top: 10px; text-transform: uppercase;">Unidades Desplegadas</p>
                         <hr style="border-color: #334155; margin: 25px 0;">
-                        <p style="color: #CBD5E1; font-size: 0.85rem; line-height: 1.6;">Conexión de alta seguridad. Telemetría actualizándose en tiempo real desde el servidor central (São Paulo).</p>
+                        <p style="color: #CBD5E1; font-size: 0.85rem; line-height: 1.6;">Conexión de alta seguridad. Telemetría actualizándose en tiempo real desde el servidor central.</p>
                     </div>
                     """, unsafe_allow_html=True)
 
+                # Gráfico de Torta (Derecha)
                 with c2:
                     st.markdown("<h4 style='color: #002A8D; text-align: center; font-weight: 800; margin-bottom: -10px;'>Distribución del Arsenal</h4>", unsafe_allow_html=True)
                     df_agrupado = df_eq.groupby('EQUIPO')['CANTIDAD'].sum().reset_index()
-                    
-                    # Gráfico de torta interactivo BI con % dinámicos
                     fig = px.pie(df_agrupado, values='CANTIDAD', names='EQUIPO', hole=0.65,
                                  color_discrete_sequence=['#002A8D', '#FF7A00', '#10B981', '#0F172A'])
-                    
-                    fig.update_traces(
-                        textposition='outside', 
-                        textinfo='percent+label',
-                        hovertemplate='<b>%{label}</b><br>Volumen: %{value} unidades<br>Participación: %{percent}',
-                        marker=dict(line=dict(color='#F8FAFC', width=2))
-                    )
-                    
-                    fig.update_layout(
-                        margin=dict(t=30, b=20, l=20, r=20),
-                        showlegend=False,
-                        paper_bgcolor='rgba(0,0,0,0)',
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        annotations=[dict(text=f"Total<br><b style='font-size:24px; color:#002A8D;'>{int(total_activos)}</b>", x=0.5, y=0.5, font_size=14, showarrow=False)]
-                    )
+                    fig.update_traces(textposition='outside', textinfo='percent+label',
+                                      hovertemplate='<b>%{label}</b><br>Volumen: %{value} unidades<br>Participación: %{percent}',
+                                      marker=dict(line=dict(color='#F8FAFC', width=2)))
+                    fig.update_layout(margin=dict(t=30, b=20, l=20, r=20), showlegend=False, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                                      annotations=[dict(text=f"Total<br><b style='font-size:24px; color:#002A8D;'>{int(total_activos)}</b>", x=0.5, y=0.5, font_size=14, showarrow=False)])
                     st.plotly_chart(fig, use_container_width=True)
+
+                # ========================================================
+                # INYECCIÓN 3D (ZONA JARVIS) - RENDERIZADO EN TIEMPO REAL
+                # ========================================================
+                st.markdown("""
+                <div style="margin-top: 40px; margin-bottom: 20px;">
+                    <h3 style="color: #002A8D; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; border-bottom: 2px solid #0F172A; padding-bottom: 10px;">
+                        ⚡ Armería Holográfica 3D (Live Rendering)
+                    </h3>
+                    <p style="color: #64748B; font-size: 0.9rem;">Interactúa con el mouse (Click + Arrastrar) para inspeccionar el equipo logístico en 360°.</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Columnas para los Hologramas
+                holo1, holo2 = st.columns(2)
+                
+                # Cadena de parámetros hackers para limpiar la interfaz del 3D
+                params = "?autostart=1&ui_controls=0&ui_infos=0&ui_inspector=0&ui_stop=0&ui_theme=dark&ui_watermark=0&transparent=1"
+                
+                with holo1:
+                    st.markdown(f"""
+                    <div style="background: linear-gradient(145deg, #0F172A, #1E293B); border: 1px solid #10B981; border-radius: 12px; padding: 10px; box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);">
+                        <p style="color: #10B981; font-weight: 800; text-align: center; margin-bottom: 5px; letter-spacing: 3px; font-size: 0.85rem;">GLOCK 19 TÁCTICA</p>
+                        <iframe title="Glock 19" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/01cf8a65eb1a4731a546cdfcde54aefb/embed{params}" height="320" width="100%"> </iframe>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                with holo2:
+                    st.markdown(f"""
+                    <div style="background: linear-gradient(145deg, #0F172A, #1E293B); border: 1px solid #FF7A00; border-radius: 12px; padding: 10px; box-shadow: 0 0 20px rgba(255, 122, 0, 0.2);">
+                        <p style="color: #FF7A00; font-weight: 800; text-align: center; margin-bottom: 5px; letter-spacing: 3px; font-size: 0.85rem;">CHALECO NIVEL III</p>
+                        <iframe title="Tactical Vest" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/fcf6c9ab4c4f42f3a4666f39d1b098b6/embed{params}" height="320" width="100%"> </iframe>
+                    </div>
+                    """, unsafe_allow_html=True)
 
         else:
             # Fallback Google Sheets
